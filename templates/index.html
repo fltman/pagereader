@@ -75,6 +75,10 @@
             flex: 1;
             margin: 5px 5px;
         }
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -164,7 +168,7 @@
 
         function initializeSelection() {
             drawSelection();
-            
+
             selectionCanvas.addEventListener('mousedown', startSelection);
             selectionCanvas.addEventListener('mousemove', updateSelection);
             selectionCanvas.addEventListener('mouseup', endSelection);
@@ -212,23 +216,23 @@
             const ctx = selectionCanvas.getContext('2d');
             ctx.clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
             ctx.drawImage(photoCanvas, 0, 0); // Draw the photo on selectionCanvas
-            
+
             // Add semi-transparent overlay
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.fillRect(0, 0, selectionCanvas.width, selectionCanvas.height);
-            
+
             if (startX !== undefined && startY !== undefined && endX !== undefined && endY !== undefined) {
                 const x = Math.min(startX, endX);
                 const y = Math.min(startY, endY);
                 const width = Math.abs(endX - startX);
                 const height = Math.abs(endY - startY);
-                
+
                 // Clear the selected area to show the original image
                 ctx.clearRect(x, y, width, height);
-                
+
                 // Redraw the portion of the original image in the selected area
                 ctx.drawImage(photoCanvas, x, y, width, height, x, y, width, height);
-                
+
                 // Draw a border around the selected area
                 ctx.strokeStyle = 'red';
                 ctx.lineWidth = 2;
@@ -247,14 +251,14 @@
                 tempCtx.drawImage(photoCanvas, 
                     Math.min(startX, endX), Math.min(startY, endY), selectedWidth, selectedHeight,
                     0, 0, selectedWidth, selectedHeight);
-                
+
                 photoCanvas.width = selectedWidth;
                 photoCanvas.height = selectedHeight;
                 photoCanvas.getContext('2d').drawImage(tempCanvas, 0, 0);
                 photoCanvas.style.display = 'block';
                 selectionCanvas.style.display = 'none';
                 confirmSelectionButton.style.display = 'none';
-                
+
                 tempCanvas.toBlob(function(blob) {
                     const formData = new FormData();
                     formData.append('file', blob, 'image.png');
@@ -285,17 +289,17 @@
         function resetCamera() {
             photoCanvas.getContext('2d').clearRect(0, 0, photoCanvas.width, photoCanvas.height);
             selectionCanvas.getContext('2d').clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
-            
+
             cameraView.style.display = 'block';
             photoCanvas.style.display = 'none';
             selectionCanvas.style.display = 'none';
-            
+
             captureButton.textContent = '📸 Take Photo';
             captureButton.removeEventListener('click', resetCamera);
             captureButton.addEventListener('click', takePhoto);
-            
+
             document.getElementById('resultContainer').style.display = 'none';
-            
+
             startX = startY = endX = endY = undefined;
         }
 
@@ -321,6 +325,7 @@
         }
 
         document.getElementById('translateButton').addEventListener('click', () => {
+            setLoading(document.getElementById('translateButton'), true);
             document.getElementById('translatePopup').style.display = 'block';
         });
 
@@ -353,13 +358,18 @@
                         {left: '$', right: '$', display: false}
                     ]
                 });
+                setLoading(document.getElementById('translateButton'), false);
             })
             .catch(error => {
                 console.error('Error:', error);
+                setLoading(document.getElementById('translateButton'), false);
             });
         }
 
-        document.getElementById('simplifyButton').addEventListener('click', () => simplifyText(ocrText));
+        document.getElementById('simplifyButton').addEventListener('click', () => {
+            setLoading(document.getElementById('simplifyButton'), true);
+            simplifyText(ocrText);
+        });
 
         function simplifyText(text) {
             fetch('/api/simplify', {
@@ -380,18 +390,23 @@
         {left: '$', right: '$', display: false}
     ]
 });
+                setLoading(document.getElementById('simplifyButton'), false);
             })
             .catch(error => {
                 console.error('Error:', error);
+                setLoading(document.getElementById('simplifyButton'), false);
             });
         }
 
-        document.getElementById('explainButton').addEventListener('click', () => explainImage());
+        document.getElementById('explainButton').addEventListener('click', () => {
+            setLoading(document.getElementById('explainButton'), true);
+            explainImage();
+        });
 
         function explainImage() {
             // Convert the canvas to base64
             const imageData = photoCanvas.toDataURL('image/jpeg');
-            
+
             fetch('/api/explain', {
                 method: 'POST',
                 headers: {
@@ -410,10 +425,17 @@
         {left: '$', right: '$', display: false}
     ]
 });
+                setLoading(document.getElementById('explainButton'), false);
             })
             .catch(error => {
                 console.error('Error:', error);
+                setLoading(document.getElementById('explainButton'), false);
             });
+        }
+
+        function setLoading(button, isLoading) {
+            button.disabled = isLoading;
+            button.classList.toggle('loading', isLoading);
         }
     </script>
 </body>
