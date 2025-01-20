@@ -16,12 +16,13 @@ load_dotenv()
 
 app = Flask(__name__)
 
-#client = OpenAI()
-openai_client = OpenAI()
+openai_client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
 client = OpenAI(
-	base_url="https://openrouter.ai/api/v1",
-	api_key=os.getenv("OPENROUTER_API_KEY"),
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.getenv("OPENROUTER_API_KEY")
 )
 
 elevenlabs_api_key = os.getenv("ELEVENLABS_KEY")
