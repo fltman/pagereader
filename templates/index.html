@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mobile Camera App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
         body {
             display: flex;
@@ -341,7 +344,13 @@
             .then(response => response.json())
             .then(data => {
                 ocrText = data.translatedText;
-                document.getElementById('ocrResult').textContent = `Translated Result: ${ocrText}`;
+                document.getElementById('ocrResult').innerHTML = `Translated Result: ${ocrText}`;
+renderMathInElement(document.getElementById('ocrResult'), {
+    delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+    ]
+});
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -361,7 +370,13 @@
             .then(response => response.json())
             .then(data => {
                 ocrText = data.simplifiedText;
-                document.getElementById('ocrResult').textContent = `Simplified Result: ${ocrText}`;
+                document.getElementById('ocrResult').innerHTML = `Simplified Result: ${ocrText}`;
+renderMathInElement(document.getElementById('ocrResult'), {
+    delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+    ]
+});
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -384,7 +399,13 @@
             .then(response => response.json())
             .then(data => {
                 ocrText = data.explanation;
-                document.getElementById('ocrResult').textContent = `Explanation: ${ocrText}`;
+                document.getElementById('ocrResult').innerHTML = `Explanation: ${ocrText}`;
+renderMathInElement(document.getElementById('ocrResult'), {
+    delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+    ]
+});
             })
             .catch(error => {
                 console.error('Error:', error);
