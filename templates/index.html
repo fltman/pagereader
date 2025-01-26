@@ -269,35 +269,6 @@
             color: white;
             border-color: #9b4dca;
         }
-        .camera-controls {
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .camera-controls button {
-            background-color: #9b4dca;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 1.6rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-        }
-        
-        .camera-controls button:hover {
-            background-color: #606c76;
-        }
-        
-        #video-feed {
-            width: 100%;
-            max-width: 500px;
-            height: auto;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
@@ -458,7 +429,7 @@
                     await initializeCamera(videoDevices[0].deviceId);
                 } else {
                     // If multiple cameras, show the selection popup
-                    showCameraSelector(videoDevices);
+                    await showCameraSelector(videoDevices);
                 }
             } catch (error) {
                 console.error("Error accessing the camera:", error);
@@ -947,7 +918,7 @@
             document.querySelector('.loading-overlay').style.display = 'none';
         }
 
-        function showCameraSelector(cameras) {
+        async function showCameraSelector(cameras) {
             const grid = document.querySelector('.camera-grid');
             grid.innerHTML = '';
             
@@ -956,11 +927,19 @@
                 cameraItem.className = 'camera-item';
                 cameraItem.dataset.deviceId = camera.deviceId;
                 
-                // Try to get a friendly name for the camera
-                const label = camera.label || `Camera ${index + 1}${index === 0 ? ' (Default)' : ''}`;
+                // Try to determine if it's front or back camera
+                let cameraType = '';
+                if (camera.facingMode === 'user' || camera.label.toLowerCase().includes('front')) {
+                    cameraType = '(Front Camera)';
+                } else if (camera.facingMode === 'environment' || camera.label.toLowerCase().includes('back')) {
+                    cameraType = '(Back Camera)';
+                }
+                
+                // Create a more descriptive label
+                const label = camera.label || `Camera ${index + 1}`;
                 cameraItem.innerHTML = `
                     <div>📷 ${label}</div>
-                    ${camera.facing ? `<div>(${camera.facing})</div>` : ''}
+                    <div>${cameraType}</div>
                 `;
                 
                 cameraItem.addEventListener('click', async () => {
@@ -979,40 +958,37 @@
                 video: {
                     deviceId: deviceId ? { exact: deviceId } : undefined,
                     width: { ideal: 4096 },
-                    height: { ideal: 2160 },
-                    aspectRatio: { ideal: 1.7777777778 }
+                    height: { ideal: 2160 }
                 }
             };
             
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
-            cameraView.srcObject = stream;
-            
-            // Wait for video to be ready
-            await new Promise(resolve => {
-                cameraView.onloadedmetadata = () => {
-                    resolve();
-                };
-            });
-            
-            // Get the actual video track settings
-            const track = stream.getVideoTracks()[0];
-            const settings = track.getSettings();
-            console.log('Camera resolution:', settings.width, 'x', settings.height);
-            
-            startButton.style.display = 'none';
-            captureButton.style.display = 'inline-block';
-            errorMessage.textContent = '';
+            try {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraView.srcObject = stream;
+                
+                // Wait for video to be ready
+                await new Promise(resolve => {
+                    cameraView.onloadedmetadata = () => {
+                        resolve();
+                    };
+                });
+                
+                startButton.style.display = 'none';
+                captureButton.style.display = 'inline-block';
+                errorMessage.textContent = '';
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                errorMessage.textContent = 'Error accessing camera: ' + error.message;
+            }
         }
 
         document.getElementById('cancelCamera').addEventListener('click', () => {
             document.getElementById('cameraPopup').style.display = 'none';
         });
-
-        function switchCamera() {
-            currentCamera = currentCamera === 0 ? 1 : 0;
-            const videoFeed = document.getElementById('video-feed');
-            videoFeed.src = `/video_feed?camera=${currentCamera}`;
-        }
     </script>
 </body>
 </html>
