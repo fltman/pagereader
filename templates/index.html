@@ -211,6 +211,7 @@
 
         function endSelection() {
             isSelecting = false;
+            showSelectionControls();
         }
 
         function handleTouch(e) {
@@ -235,7 +236,7 @@
         function drawSelection() {
             const ctx = selectionCanvas.getContext('2d');
             ctx.clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
-            ctx.drawImage(photoCanvas, 0, 0); // Draw the photo on selectionCanvas
+            ctx.drawImage(photoCanvas, 0, 0);
 
             // Add semi-transparent overlay
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -257,7 +258,17 @@
                 ctx.strokeStyle = 'red';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x, y, width, height);
+
+                // Update the selection values for the adjustment controls
+                updateSelectionValues(x, y, width, height);
             }
+        }
+
+        function updateSelectionValues(x, y, width, height) {
+            startX = x;
+            startY = y;
+            endX = x + width;
+            endY = y + height;
         }
 
         function confirmSelection() {
@@ -463,46 +474,46 @@
         }
 
         document.getElementById('moveLeft').addEventListener('click', () => {
-            const selection = document.querySelector('.selection');
-            const currentLeft = parseInt(selection.style.left);
-            selection.style.left = (currentLeft - 1) + 'px';
+            if (startX > 0) {
+                startX -= 1;
+                endX -= 1;
+                drawSelection();
+            }
         });
 
         document.getElementById('moveRight').addEventListener('click', () => {
-            const selection = document.querySelector('.selection');
-            const currentLeft = parseInt(selection.style.left);
-            selection.style.left = (currentLeft + 1) + 'px';
+            if (endX < selectionCanvas.width) {
+                startX += 1;
+                endX += 1;
+                drawSelection();
+            }
         });
 
         document.getElementById('expandLeft').addEventListener('click', () => {
-            const selection = document.querySelector('.selection');
-            const currentLeft = parseInt(selection.style.left);
-            const currentWidth = parseInt(selection.style.width);
-            selection.style.left = (currentLeft - 1) + 'px';
-            selection.style.width = (currentWidth + 1) + 'px';
+            if (startX > 0) {
+                startX -= 1;
+                drawSelection();
+            }
         });
 
         document.getElementById('expandRight').addEventListener('click', () => {
-            const selection = document.querySelector('.selection');
-            const currentWidth = parseInt(selection.style.width);
-            selection.style.width = (currentWidth + 1) + 'px';
+            if (endX < selectionCanvas.width) {
+                endX += 1;
+                drawSelection();
+            }
         });
 
         document.getElementById('shrinkLeft').addEventListener('click', () => {
-            const selection = document.querySelector('.selection');
-            const currentLeft = parseInt(selection.style.left);
-            const currentWidth = parseInt(selection.style.width);
-            if (currentWidth > 1) {
-                selection.style.left = (currentLeft + 1) + 'px';
-                selection.style.width = (currentWidth - 1) + 'px';
+            if (endX - startX > 10) { // Minimum width of 10px
+                startX += 1;
+                drawSelection();
             }
         });
 
         document.getElementById('shrinkRight').addEventListener('click', () => {
-            const selection = document.querySelector('.selection');
-            const currentWidth = parseInt(selection.style.width);
-            if (currentWidth > 1) {
-                selection.style.width = (currentWidth - 1) + 'px';
+            if (endX - startX > 10) { // Minimum width of 10px
+                endX -= 1;
+                drawSelection();
             }
         });
 
