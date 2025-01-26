@@ -300,6 +300,10 @@
                 <button id="explainButton" class="button button-outline camera-button">💡 Explain</button>
             </div>
         </div>
+        <div class="camera-controls">
+            <button onclick="switchCamera()">Switch Camera</button>
+        </div>
+        <img src="{{ url_for('video_feed') }}" id="video-feed">
     </div>
 
     <div id="translatePopup" class="modal">
@@ -402,6 +406,7 @@
         let currentVoiceId = 'YREPt7KOziuJoYyc1RTB';  // Default voice ID
         let voices = [];
         let lastPlayedText = '';
+        let currentCamera = 0;
 
         startButton.addEventListener('click', startCamera);
         captureButton.addEventListener('click', takePhoto);
@@ -971,6 +976,12 @@
         document.getElementById('cancelCamera').addEventListener('click', () => {
             document.getElementById('cameraPopup').style.display = 'none';
         });
+
+        function switchCamera() {
+            currentCamera = currentCamera === 0 ? 1 : 0;
+            const videoFeed = document.getElementById('video-feed');
+            videoFeed.src = `/video_feed?camera=${currentCamera}`;
+        }
     </script>
 </body>
 </html>
