@@ -328,23 +328,6 @@ def get_voices():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/video_feed')
-def video_feed():
-    # Get the camera index from query parameter, default to 0 (usually rear camera)
-    camera_index = request.args.get('camera', default=0, type=int)
-    return Response(generate_frames(camera_index),
-                   mimetype='multipart/x-data/image')
-
-def generate_frames(camera_index=0):
-    # Initialize camera with specified index
-    camera = cv2.VideoCapture(camera_index)
-    
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        # ... existing frame processing code ...
-
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=5000)
 	
