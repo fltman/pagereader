@@ -299,6 +299,9 @@
                 <button id="simplifyButton" class="button button-outline camera-button">⚙️ Simplify</button>
                 <button id="explainButton" class="button button-outline camera-button">💡 Explain</button>
             </div>
+            <div class="button-row" style="margin-top: 20px;">
+                <button id="newPhotoButton" class="button button-outline camera-button">📸 Take New Photo</button>
+            </div>
         </div>
     </div>
 
@@ -408,6 +411,12 @@
         captureButton.addEventListener('click', takePhoto);
         confirmSelectionButton.addEventListener('click', confirmSelection);
 
+        document.getElementById('newPhotoButton').addEventListener('click', () => {
+            resetCamera();
+            startButton.style.display = 'none';
+            captureButton.style.display = 'inline-block';
+        });
+
         async function startCamera() {
             try {
                 // First request general camera access to trigger permission prompt
@@ -421,17 +430,24 @@
                     throw new Error('No cameras found');
                 }
                 
-                // For iOS, we need to explicitly try both front and back cameras
+                // Combine actual devices and fallback options
                 const cameras = [
-                    { deviceId: '', facingMode: 'environment', label: 'Back Camera' },
-                    { deviceId: '', facingMode: 'user', label: 'Front Camera' }
+                    // Add actual detected cameras
+                    ...videoDevices.map(device => ({
+                        deviceId: device.deviceId,
+                        label: device.label || `Camera ${videoDevices.indexOf(device) + 1}`,
+                        isActual: true
+                    })),
+                    // Add fallback options if we have less than 2 labeled cameras
+                    { deviceId: '', facingMode: 'environment', label: '📱 Try Back Camera', isActual: false },
+                    { deviceId: '', facingMode: 'user', label: '🤳 Try Front Camera', isActual: false }
                 ];
                 
-                if (videoDevices.length === 1) {
-                    // If only one camera, use it directly
+                if (videoDevices.length === 1 && videoDevices[0].label) {
+                    // If only one labeled camera, use it directly
                     await initializeCamera(videoDevices[0].deviceId);
                 } else {
-                    // Show camera selection with explicit front/back options
+                    // Show all options
                     await showCameraSelector(cameras);
                 }
             } catch (error) {
@@ -493,7 +509,7 @@
             
             // Get the cropped canvas with high resolution options
             const croppedCanvas = cropper.getCroppedCanvas({
-                width: cropper.getData().width, // Maintain original size
+                width: cropper.getData().width,
                 height: cropper.getData().height,
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high'
@@ -508,7 +524,14 @@
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.error || 'OCR process failed');
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.error) {
                         throw new Error(data.error);
@@ -516,27 +539,34 @@
                     console.log('OCR Result:', data.text);
                     ocrText = data.text;
                     document.getElementById('ocrResult').textContent = `OCR Result: ${ocrText}`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    let errorMsg = error.message;
+                    if (errorMsg === 'No text found') {
+                        errorMsg = 'No text was found in the image. Please try again with a clearer image or different area.';
+                        ocrText = ''; // Clear any previous text
+                    }
+                    document.getElementById('errorMessage').textContent = errorMsg;
+                    document.getElementById('ocrResult').textContent = '';
+                })
+                .finally(() => {
+                    // Always show result container and display cropped image
                     document.getElementById('resultContainer').style.display = 'block';
                     
                     // Display cropped image
                     const photoImage = document.getElementById('photoImage');
                     photoImage.src = croppedCanvas.toDataURL();
-                    cropper.destroy();
-                    cropper = null;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('errorMessage').textContent = error.message;
-                })
-                .finally(() => {
+                    
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
+                    
                     hideLoading();
                     confirmSelectionButton.style.display = 'none';
-                    captureButton.textContent = '📸 Take Another Photo';
-                    captureButton.style.display = 'inline-block';
-                    captureButton.removeEventListener('click', takePhoto);
-                    captureButton.addEventListener('click', resetCamera);
                 });
-            }, 'image/png', 1.0); // Use PNG format with maximum quality
+            }, 'image/png', 1.0);
         }
 
         function resetCamera() {
@@ -930,12 +960,16 @@
                 cameraItem.className = 'camera-item';
                 
                 cameraItem.innerHTML = `
-                    <div>📷 ${camera.label}</div>
+                    <div>${camera.label}</div>
                 `;
                 
                 cameraItem.addEventListener('click', async () => {
                     document.getElementById('cameraPopup').style.display = 'none';
-                    await initializeCamera(camera.deviceId, camera.facingMode);
+                    if (camera.isActual) {
+                        await initializeCamera(camera.deviceId);
+                    } else {
+                        await initializeCamera(null, camera.facingMode);
+                    }
                 });
                 
                 grid.appendChild(cameraItem);
@@ -947,8 +981,8 @@
         async function initializeCamera(deviceId, facingMode) {
             const constraints = {
                 video: {
-                    facingMode: facingMode,
-                    deviceId: deviceId ? { exact: deviceId } : undefined,
+                    ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+                    ...(facingMode ? { facingMode } : {}),
                     width: { ideal: 4096 },
                     height: { ideal: 2160 }
                 }
