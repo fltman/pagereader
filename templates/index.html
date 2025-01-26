@@ -9,6 +9,8 @@
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <style>
         body {
             display: flex;
@@ -36,10 +38,14 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            user-select: none;
         }
         .camera-button:hover {
             background-color: #606c76;
             border-color: #606c76;
+        }
+        .camera-button:active {
+            transform: scale(0.98);
         }
         #cameraView, #photoCanvas, #selectionCanvas {
             width: 100%;
@@ -79,6 +85,190 @@
             opacity: 0.5;
             pointer-events: none;
         }
+        .selection-handle {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 2px solid red;
+            position: absolute;
+            cursor: pointer;
+            z-index: 1001;
+            pointer-events: auto;
+            border-radius: 50%;
+        }
+        .handle-nw { cursor: nw-resize; }
+        .handle-n { cursor: n-resize; }
+        .handle-ne { cursor: ne-resize; }
+        .handle-w { cursor: w-resize; }
+        .handle-e { cursor: e-resize; }
+        .handle-sw { cursor: sw-resize; }
+        .handle-s { cursor: s-resize; }
+        .handle-se { cursor: se-resize; }
+        .selection-box {
+            position: absolute;
+            border: 2px solid red;
+            pointer-events: none;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+        }
+        #selectionCanvas {
+            position: relative;
+            display: block;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+        .image-container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        #photoCanvas {
+            max-width: 100%;
+            display: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 90%;
+            width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .language-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .language-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .language-item:hover {
+            background-color: #f0f0f0;
+        }
+        .language-item.selected {
+            background-color: #9b4dca;
+            color: white;
+            border-color: #9b4dca;
+        }
+        .play-text, .pause-text {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .voice-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .voice-item:hover {
+            background-color: #f0f0f0;
+        }
+        .voice-item.selected {
+            background-color: #9b4dca;
+            color: white;
+            border-color: #9b4dca;
+        }
+        .voice-preview-container {
+            margin: 15px 0;
+            text-align: center;
+        }
+        .preview-button {
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            margin-top: 5px;
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #9b4dca;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .camera-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .camera-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .camera-item:hover {
+            background-color: #f0f0f0;
+        }
+        .camera-item.selected {
+            background-color: #9b4dca;
+            color: white;
+            border-color: #9b4dca;
+        }
     </style>
 </head>
 <body>
@@ -87,9 +277,10 @@
         <button id="startButton" class="button button-outline camera-button">
             📷 Start Camera
         </button>
-        <video id="cameraView" autoplay playsinline></video>
-        <canvas id="photoCanvas"></canvas>
-        <canvas id="selectionCanvas"></canvas>
+        <div class="image-container">
+            <video id="cameraView" autoplay playsinline></video>
+            <img id="photoImage" style="display: none; max-width: 100%;">
+        </div>
         <button id="captureButton" class="button button-outline camera-button" style="display: none;">
             📸 Take Photo
         </button>
@@ -100,38 +291,98 @@
         <div id="resultContainer" style="display: none;">
             <p id="ocrResult"></p>
             <div class="button-row">
-                <button id="readButton" class="button button-outline camera-button">🔊 Read</button><br/>
+                <button id="readButton" class="button button-outline camera-button">
+                    <span class="play-text">🎙️ Play</span>
+                    <span class="pause-text" style="display: none;">⏸️ Pause</span>
+                </button>
                 <button id="translateButton" class="button button-outline camera-button">🌐 Translate</button>
                 <button id="simplifyButton" class="button button-outline camera-button">⚙️ Simplify</button>
                 <button id="explainButton" class="button button-outline camera-button">💡 Explain</button>
             </div>
         </div>
-        <div class="selection-controls" style="display: none;">
-            <button id="moveLeft" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Move Left
-            </button>
-            <button id="moveRight" class="btn btn-secondary">
-                Move Right <i class="fas fa-arrow-right"></i>
-            </button>
-            <button id="expandLeft" class="btn btn-secondary">
-                <i class="fas fa-expand-alt"></i> Expand Left
-            </button>
-            <button id="expandRight" class="btn btn-secondary">
-                Expand Right <i class="fas fa-expand-alt"></i>
-            </button>
-            <button id="shrinkLeft" class="btn btn-secondary">
-                <i class="fas fa-compress-alt"></i> Shrink Left
-            </button>
-            <button id="shrinkRight" class="btn btn-secondary">
-                Shrink Right <i class="fas fa-compress-alt"></i>
-            </button>
+    </div>
+
+    <div id="translatePopup" class="modal">
+        <div class="modal-content">
+            <h3>Select Language</h3>
+            <div class="language-grid">
+                <!-- Top priority languages -->
+                <div class="language-item" data-lang="svenska">
+                    🇸🇪 Svenska
+                </div>
+                <div class="language-item" data-lang="english">
+                    🇬🇧 English
+                </div>
+                
+                <!-- Other Scandinavian languages -->
+                <div class="language-item" data-lang="dansk">
+                    🇩🇰 Dansk
+                </div>
+                <div class="language-item" data-lang="norsk">
+                    🇳🇴 Norsk
+                </div>
+                <div class="language-item" data-lang="íslenska">
+                    🇮🇸 Íslenska
+                </div>
+                <div class="language-item" data-lang="suomi">
+                    🇫🇮 Suomi
+                </div>
+                
+                <!-- Other European languages (alphabetically) -->
+                <div class="language-item" data-lang="deutsch">
+                    🇩🇪 Deutsch
+                </div>
+                <div class="language-item" data-lang="español">
+                    🇪🇸 Español
+                </div>
+                <div class="language-item" data-lang="français">
+                    🇫🇷 Français
+                </div>
+                <div class="language-item" data-lang="italiano">
+                    🇮🇹 Italiano
+                </div>
+                <div class="language-item" data-lang="nederlands">
+                    🇳🇱 Nederlands
+                </div>
+                <div class="language-item" data-lang="português">
+                    🇵🇹 Português
+                </div>
+                
+                <!-- Arabic -->
+                <div class="language-item" data-lang="العربية">
+                    🇸🇦 العربية
+                </div>
+            </div>
+            <button id="cancelTranslate" class="button">Cancel</button>
         </div>
     </div>
 
-    <div id="translatePopup">
-        <input type="text" id="languageInput" placeholder="Enter language (default: swedish)">
-        <button id="confirmTranslate">Translate</button>
-        <button id="cancelTranslate">Cancel</button>
+    <div id="voicePopup" class="modal">
+        <div class="modal-content">
+            <h3>Select Voice</h3>
+            <div class="voice-grid">
+                <!-- Voices will be populated here -->
+            </div>
+            <div class="voice-preview-container">
+                <audio id="voicePreview" controls style="display: none;"></audio>
+            </div>
+            <button id="cancelVoice" class="button">Cancel</button>
+        </div>
+    </div>
+
+    <div id="cameraPopup" class="modal">
+        <div class="modal-content">
+            <h3>Select Camera</h3>
+            <div class="camera-grid">
+                <!-- Cameras will be populated here -->
+            </div>
+            <button id="cancelCamera" class="button">Cancel</button>
+        </div>
+    </div>
+
+    <div class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Processing...</div>
     </div>
 
     <script>
@@ -146,6 +397,11 @@
         let isSelecting = false;
         let startX, startY, endX, endY;
         let ocrText = '';
+        let cropper = null;
+        let currentAudio = null;
+        let currentVoiceId = 'YREPt7KOziuJoYyc1RTB';  // Default voice ID
+        let voices = [];
+        let lastPlayedText = '';
 
         startButton.addEventListener('click', startCamera);
         captureButton.addEventListener('click', takePhoto);
@@ -153,11 +409,21 @@
 
         async function startCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                cameraView.srcObject = stream;
-                startButton.style.display = 'none';
-                captureButton.style.display = 'inline-block';
-                errorMessage.textContent = '';
+                // First, enumerate all available cameras
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                if (videoDevices.length === 0) {
+                    throw new Error('No cameras found');
+                }
+                
+                if (videoDevices.length === 1) {
+                    // If only one camera, use it directly
+                    await initializeCamera(videoDevices[0].deviceId);
+                } else {
+                    // If multiple cameras, show the selection popup
+                    showCameraSelector(videoDevices);
+                }
             } catch (error) {
                 console.error("Error accessing the camera:", error);
                 let message = 'Failed to access the camera. ';
@@ -166,193 +432,219 @@
                 } else if (error.name === 'NotFoundError') {
                     message += 'No camera found on your device.';
                 } else {
-                    message += 'Please check your camera settings and try again.';
+                    message += error.message || 'Please check your camera settings and try again.';
                 }
                 errorMessage.textContent = message;
             }
         }
 
         function takePhoto() {
-            photoCanvas.width = cameraView.videoWidth;
-            photoCanvas.height = cameraView.videoHeight;
-            photoCanvas.getContext('2d').drawImage(cameraView, 0, 0);
-            photoCanvas.style.display = 'none';
-            selectionCanvas.width = photoCanvas.width;
-            selectionCanvas.height = photoCanvas.height;
-            selectionCanvas.style.display = 'block';
+            // Create a high-resolution canvas matching the video's intrinsic size
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraView.videoWidth;
+            canvas.height = cameraView.videoHeight;
+            
+            // Draw the full-resolution image
+            canvas.getContext('2d').drawImage(cameraView, 0, 0);
+            
+            const photoImage = document.getElementById('photoImage');
+            photoImage.src = canvas.toDataURL('image/png', 1.0); // Use PNG with max quality
+            photoImage.style.display = 'block';
+            
             cameraView.style.display = 'none';
             captureButton.style.display = 'none';
             confirmSelectionButton.style.display = 'inline-block';
-            initializeSelection();
-        }
-
-        function initializeSelection() {
-            drawSelection();
-
-            selectionCanvas.addEventListener('mousedown', startSelection);
-            selectionCanvas.addEventListener('mousemove', updateSelection);
-            selectionCanvas.addEventListener('mouseup', endSelection);
-            selectionCanvas.addEventListener('touchstart', handleTouch);
-            selectionCanvas.addEventListener('touchmove', handleTouch);
-            selectionCanvas.addEventListener('touchend', endSelection);
-        }
-
-        function startSelection(e) {
-            isSelecting = true;
-            [startX, startY] = getCoordinates(e);
-            drawSelection();
-        }
-
-        function updateSelection(e) {
-            if (!isSelecting) return;
-            [endX, endY] = getCoordinates(e);
-            drawSelection();
-        }
-
-        function endSelection() {
-            isSelecting = false;
-            showSelectionControls();
-        }
-
-        function handleTouch(e) {
-            e.preventDefault();
-            if (e.type === 'touchstart') {
-                startSelection(e.touches[0]);
-            } else if (e.type === 'touchmove') {
-                updateSelection(e.touches[0]);
-            }
-        }
-
-        function getCoordinates(e) {
-            const rect = selectionCanvas.getBoundingClientRect();
-            const scaleX = selectionCanvas.width / rect.width;
-            const scaleY = selectionCanvas.height / rect.height;
-            return [
-                (e.clientX - rect.left) * scaleX,
-                (e.clientY - rect.top) * scaleY
-            ];
-        }
-
-        function drawSelection() {
-            const ctx = selectionCanvas.getContext('2d');
-            ctx.clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
-            ctx.drawImage(photoCanvas, 0, 0);
-
-            // Add semi-transparent overlay
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(0, 0, selectionCanvas.width, selectionCanvas.height);
-
-            if (startX !== undefined && startY !== undefined && endX !== undefined && endY !== undefined) {
-                const x = Math.min(startX, endX);
-                const y = Math.min(startY, endY);
-                const width = Math.abs(endX - startX);
-                const height = Math.abs(endY - startY);
-
-                // Clear the selected area to show the original image
-                ctx.clearRect(x, y, width, height);
-
-                // Redraw the portion of the original image in the selected area
-                ctx.drawImage(photoCanvas, x, y, width, height, x, y, width, height);
-
-                // Draw a border around the selected area
-                ctx.strokeStyle = 'red';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, width, height);
-
-                // Update the selection values for the adjustment controls
-                updateSelectionValues(x, y, width, height);
-            }
-        }
-
-        function updateSelectionValues(x, y, width, height) {
-            startX = x;
-            startY = y;
-            endX = x + width;
-            endY = y + height;
+            
+            // Initialize Cropper with high-quality options
+            cropper = new Cropper(photoImage, {
+                viewMode: 1,
+                dragMode: 'crop',
+                aspectRatio: NaN,
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+                minContainerWidth: 100,
+                minContainerHeight: 100,
+                quality: 1, // Maximum quality
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
         }
 
         function confirmSelection() {
-            if (startX !== undefined && startY !== undefined && endX !== undefined && endY !== undefined) {
-                const selectedWidth = Math.abs(endX - startX);
-                const selectedHeight = Math.abs(endY - startY);
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = selectedWidth;
-                tempCanvas.height = selectedHeight;
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCtx.drawImage(photoCanvas, 
-                    Math.min(startX, endX), Math.min(startY, endY), selectedWidth, selectedHeight,
-                    0, 0, selectedWidth, selectedHeight);
+            if (!cropper) return;
+            
+            showLoading('Reading text...');
+            
+            // Get the cropped canvas with high resolution options
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: cropper.getData().width, // Maintain original size
+                height: cropper.getData().height,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+            
+            // Convert to blob with high quality
+            croppedCanvas.toBlob((blob) => {
+                const formData = new FormData();
+                formData.append('file', blob, 'image.png');
 
-                photoCanvas.width = selectedWidth;
-                photoCanvas.height = selectedHeight;
-                photoCanvas.getContext('2d').drawImage(tempCanvas, 0, 0);
-                photoCanvas.style.display = 'block';
-                selectionCanvas.style.display = 'none';
-                confirmSelectionButton.style.display = 'none';
-
-                tempCanvas.toBlob(function(blob) {
-                    const formData = new FormData();
-                    formData.append('file', blob, 'image.png');
-
-                    fetch('/ocr', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('OCR Result:', data.text);
-                        ocrText = data.text;
-                        document.getElementById('ocrResult').textContent = `OCR Result: ${ocrText}`;
-                        document.getElementById('resultContainer').style.display = 'block';
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-                }, 'image/png');
-
-                captureButton.textContent = '📷 Take Another Photo';
-                captureButton.style.display = 'inline-block';
-                captureButton.removeEventListener('click', takePhoto);
-                captureButton.addEventListener('click', resetCamera);
-            }
+                fetch('/ocr', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    console.log('OCR Result:', data.text);
+                    ocrText = data.text;
+                    document.getElementById('ocrResult').textContent = `OCR Result: ${ocrText}`;
+                    document.getElementById('resultContainer').style.display = 'block';
+                    
+                    // Display cropped image
+                    const photoImage = document.getElementById('photoImage');
+                    photoImage.src = croppedCanvas.toDataURL();
+                    cropper.destroy();
+                    cropper = null;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('errorMessage').textContent = error.message;
+                })
+                .finally(() => {
+                    hideLoading();
+                    confirmSelectionButton.style.display = 'none';
+                    captureButton.textContent = '📸 Take Another Photo';
+                    captureButton.style.display = 'inline-block';
+                    captureButton.removeEventListener('click', takePhoto);
+                    captureButton.addEventListener('click', resetCamera);
+                });
+            }, 'image/png', 1.0); // Use PNG format with maximum quality
         }
 
         function resetCamera() {
-            photoCanvas.getContext('2d').clearRect(0, 0, photoCanvas.width, photoCanvas.height);
-            selectionCanvas.getContext('2d').clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
-
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            
+            const photoImage = document.getElementById('photoImage');
+            photoImage.style.display = 'none';
+            photoImage.src = '';
+            
             cameraView.style.display = 'block';
-            photoCanvas.style.display = 'none';
-            selectionCanvas.style.display = 'none';
-
+            
             captureButton.textContent = '📸 Take Photo';
             captureButton.removeEventListener('click', resetCamera);
             captureButton.addEventListener('click', takePhoto);
-
+            
             document.getElementById('resultContainer').style.display = 'none';
 
-            startX = startY = endX = endY = undefined;
+            if (currentAudio) {
+                currentAudio.pause();
+                resetPlayButton();
+            }
         }
 
-        document.getElementById('readButton').addEventListener('click', () => readText(ocrText));
+        document.getElementById('readButton').addEventListener('click', () => {
+            const button = document.getElementById('readButton');
+            const playText = button.querySelector('.play-text');
+            const pauseText = button.querySelector('.pause-text');
+
+            if (currentAudio && lastPlayedText === ocrText) {
+                if (currentAudio.paused) {
+                    currentAudio.play();
+                    playText.style.display = 'none';
+                    pauseText.style.display = 'inline';
+                } else {
+                    currentAudio.pause();
+                    playText.style.display = 'inline';
+                    pauseText.style.display = 'none';
+                }
+            } else {
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio = null;
+                }
+                playText.style.display = 'none';
+                pauseText.style.display = 'inline';
+                setLoading(button, true);
+                readText(ocrText);
+                lastPlayedText = ocrText;
+            }
+        });
 
         function readText(text) {
+            if (!text) {
+                console.error('No text to read');
+                resetPlayButton();
+                return;
+            }
+
+            showLoading('Generating audio...');
+
             fetch('/api/text-to-speech', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ text: text })
+                body: JSON.stringify({ 
+                    text: text,
+                    voice_id: currentVoiceId
+                })
             })
-            .then(response => response.blob())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.blob();
+            })
             .then(audioBlob => {
                 const audioUrl = URL.createObjectURL(audioBlob);
-                const audioElement = new Audio(audioUrl);
-                audioElement.play();
+                currentAudio = new Audio(audioUrl);
+                
+                currentAudio.addEventListener('ended', () => {
+                    resetPlayButton();
+                });
+
+                currentAudio.addEventListener('error', () => {
+                    console.error('Audio playback error');
+                    resetPlayButton();
+                });
+
+                currentAudio.play().catch(error => {
+                    console.error('Error playing audio:', error);
+                    resetPlayButton();
+                });
+                
+                setLoading(document.getElementById('readButton'), false);
             })
             .catch(error => {
                 console.error('Error:', error);
+                resetPlayButton();
+            })
+            .finally(() => {
+                hideLoading();
             });
+        }
+
+        function resetPlayButton() {
+            const button = document.getElementById('readButton');
+            const playText = button.querySelector('.play-text');
+            const pauseText = button.querySelector('.pause-text');
+            
+            playText.style.display = 'inline';
+            pauseText.style.display = 'none';
+            setLoading(button, false);
+            currentAudio = null;
+            lastPlayedText = '';
         }
 
         document.getElementById('translateButton').addEventListener('click', () => {
@@ -360,17 +652,45 @@
             document.getElementById('translatePopup').style.display = 'block';
         });
 
-        document.getElementById('confirmTranslate').addEventListener('click', () => {
-            const language = document.getElementById('languageInput').value || 'swedish';
-            translateText(ocrText, language);
-            document.getElementById('translatePopup').style.display = 'none';
-        });
-
         document.getElementById('cancelTranslate').addEventListener('click', () => {
             document.getElementById('translatePopup').style.display = 'none';
+            setLoading(document.getElementById('translateButton'), false);
+        });
+
+        // Add click handlers for language items
+        document.querySelectorAll('.language-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove selected class from all items
+                document.querySelectorAll('.language-item').forEach(i => {
+                    i.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked item
+                item.classList.add('selected');
+                
+                // Get the language and translate
+                const language = item.dataset.lang;
+                if (!ocrText) {
+                    document.getElementById('ocrResult').textContent = 'No text to translate';
+                    document.getElementById('translatePopup').style.display = 'none';
+                    setLoading(document.getElementById('translateButton'), false);
+                    return;
+                }
+                
+                translateText(ocrText, language);
+                document.getElementById('translatePopup').style.display = 'none';
+            });
         });
 
         function translateText(text, language) {
+            if (!text || !language) {
+                console.error('Text or language is missing');
+                setLoading(document.getElementById('translateButton'), false);
+                return;
+            }
+
+            showLoading('Translating...');
+
             fetch('/api/translate', {
                 method: 'POST',
                 headers: {
@@ -378,21 +698,36 @@
                 },
                 body: JSON.stringify({ text: text, language: language })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
                 ocrText = data.translatedText;
-                const parsedText = marked.parse(ocrText);
-                document.getElementById('ocrResult').innerHTML = `Translated Result: ${parsedText}`;
+                
+                // Only parse if there's text to parse
+                const displayText = ocrText ? marked.parse(ocrText) : 'No translation available';
+                document.getElementById('ocrResult').innerHTML = `Translated Result: ${displayText}`;
+                
                 renderMathInElement(document.getElementById('ocrResult'), {
                     delimiters: [
                         {left: '$$', right: '$$', display: true},
                         {left: '$', right: '$', display: false}
                     ]
                 });
-                setLoading(document.getElementById('translateButton'), false);
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Translation error:', error);
+                document.getElementById('ocrResult').textContent = `Translation Error: ${error.message}`;
+            })
+            .finally(() => {
+                hideLoading();
                 setLoading(document.getElementById('translateButton'), false);
             });
         }
@@ -403,6 +738,8 @@
         });
 
         function simplifyText(text) {
+            showLoading('Simplifying...');
+
             fetch('/api/simplify', {
                 method: 'POST',
                 headers: {
@@ -426,6 +763,9 @@
             .catch(error => {
                 console.error('Error:', error);
                 setLoading(document.getElementById('simplifyButton'), false);
+            })
+            .finally(() => {
+                hideLoading();
             });
         }
 
@@ -435,8 +775,19 @@
         });
 
         function explainImage() {
-            // Convert the canvas to base64
-            const imageData = photoCanvas.toDataURL('image/jpeg');
+            showLoading('Analyzing image...');
+
+            // Get the image data from photoImage instead of photoCanvas
+            const photoImage = document.getElementById('photoImage');
+            
+            // Create a temporary canvas to get the image data
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = photoImage.naturalWidth;
+            tempCanvas.height = photoImage.naturalHeight;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(photoImage, 0, 0);
+            
+            const imageData = tempCanvas.toDataURL('image/jpeg');
 
             fetch('/api/explain', {
                 method: 'POST',
@@ -461,6 +812,9 @@
             .catch(error => {
                 console.error('Error:', error);
                 setLoading(document.getElementById('explainButton'), false);
+            })
+            .finally(() => {
+                hideLoading();
             });
         }
 
@@ -469,55 +823,154 @@
             button.classList.toggle('loading', isLoading);
         }
 
-        function showSelectionControls() {
-            document.querySelector('.selection-controls').style.display = 'block';
+        // Long press on read button opens voice selector
+        let pressTimer;
+        document.getElementById('readButton').addEventListener('mousedown', () => {
+            pressTimer = setTimeout(() => {
+                showVoiceSelector();
+            }, 500);  // 500ms for long press
+        });
+
+        document.getElementById('readButton').addEventListener('mouseup', () => {
+            clearTimeout(pressTimer);
+        });
+
+        document.getElementById('readButton').addEventListener('mouseleave', () => {
+            clearTimeout(pressTimer);
+        });
+
+        function showVoiceSelector() {
+            if (voices.length === 0) {
+                showLoading('Loading voices...');
+                fetch('/api/voices')
+                    .then(response => response.json())
+                    .then(data => {
+                        voices = data;
+                        populateVoiceGrid(data);
+                        document.getElementById('voicePopup').style.display = 'block';
+                    })
+                    .catch(error => console.error('Error fetching voices:', error))
+                    .finally(() => {
+                        hideLoading();
+                    });
+            } else {
+                populateVoiceGrid(voices);
+                document.getElementById('voicePopup').style.display = 'block';
+            }
         }
 
-        document.getElementById('moveLeft').addEventListener('click', () => {
-            if (startX > 0) {
-                startX -= 1;
-                endX -= 1;
-                drawSelection();
-            }
+        function populateVoiceGrid(voices) {
+            const grid = document.querySelector('.voice-grid');
+            grid.innerHTML = '';
+            
+            voices.forEach(voice => {
+                const voiceItem = document.createElement('div');
+                voiceItem.className = `voice-item ${voice.id === currentVoiceId ? 'selected' : ''}`;
+                voiceItem.dataset.voiceId = voice.id;
+                
+                voiceItem.innerHTML = `
+                    <div>${voice.name}</div>
+                    ${voice.preview_url ? `<button class="preview-button">🔊 Preview</button>` : ''}
+                `;
+                
+                // Add click handler for selection
+                voiceItem.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('preview-button')) {
+                        // Handle preview
+                        const preview = document.getElementById('voicePreview');
+                        preview.src = voice.preview_url;
+                        preview.style.display = 'block';
+                        preview.play();
+                    } else {
+                        // Handle selection
+                        document.querySelectorAll('.voice-item').forEach(item => {
+                            item.classList.remove('selected');
+                        });
+                        voiceItem.classList.add('selected');
+                        currentVoiceId = voice.id;
+                        document.getElementById('voicePopup').style.display = 'none';
+                    }
+                });
+                
+                grid.appendChild(voiceItem);
+            });
+        }
+
+        document.getElementById('cancelVoice').addEventListener('click', () => {
+            document.getElementById('voicePopup').style.display = 'none';
         });
 
-        document.getElementById('moveRight').addEventListener('click', () => {
-            if (endX < selectionCanvas.width) {
-                startX += 1;
-                endX += 1;
-                drawSelection();
-            }
-        });
+        function showLoading(message = 'Processing...') {
+            const overlay = document.querySelector('.loading-overlay');
+            const loadingText = overlay.querySelector('.loading-text');
+            loadingText.textContent = message;
+            overlay.style.display = 'flex';
+        }
 
-        document.getElementById('expandLeft').addEventListener('click', () => {
-            if (startX > 0) {
-                startX -= 1;
-                drawSelection();
-            }
-        });
+        function hideLoading() {
+            document.querySelector('.loading-overlay').style.display = 'none';
+        }
 
-        document.getElementById('expandRight').addEventListener('click', () => {
-            if (endX < selectionCanvas.width) {
-                endX += 1;
-                drawSelection();
-            }
-        });
+        function showCameraSelector(cameras) {
+            const grid = document.querySelector('.camera-grid');
+            grid.innerHTML = '';
+            
+            cameras.forEach((camera, index) => {
+                const cameraItem = document.createElement('div');
+                cameraItem.className = 'camera-item';
+                cameraItem.dataset.deviceId = camera.deviceId;
+                
+                // Try to get a friendly name for the camera
+                const label = camera.label || `Camera ${index + 1}${index === 0 ? ' (Default)' : ''}`;
+                cameraItem.innerHTML = `
+                    <div>📷 ${label}</div>
+                    ${camera.facing ? `<div>(${camera.facing})</div>` : ''}
+                `;
+                
+                cameraItem.addEventListener('click', async () => {
+                    document.getElementById('cameraPopup').style.display = 'none';
+                    await initializeCamera(camera.deviceId);
+                });
+                
+                grid.appendChild(cameraItem);
+            });
+            
+            document.getElementById('cameraPopup').style.display = 'block';
+        }
 
-        document.getElementById('shrinkLeft').addEventListener('click', () => {
-            if (endX - startX > 10) { // Minimum width of 10px
-                startX += 1;
-                drawSelection();
-            }
-        });
+        async function initializeCamera(deviceId) {
+            const constraints = {
+                video: {
+                    deviceId: deviceId ? { exact: deviceId } : undefined,
+                    width: { ideal: 4096 },
+                    height: { ideal: 2160 },
+                    aspectRatio: { ideal: 1.7777777778 }
+                }
+            };
+            
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            cameraView.srcObject = stream;
+            
+            // Wait for video to be ready
+            await new Promise(resolve => {
+                cameraView.onloadedmetadata = () => {
+                    resolve();
+                };
+            });
+            
+            // Get the actual video track settings
+            const track = stream.getVideoTracks()[0];
+            const settings = track.getSettings();
+            console.log('Camera resolution:', settings.width, 'x', settings.height);
+            
+            startButton.style.display = 'none';
+            captureButton.style.display = 'inline-block';
+            errorMessage.textContent = '';
+        }
 
-        document.getElementById('shrinkRight').addEventListener('click', () => {
-            if (endX - startX > 10) { // Minimum width of 10px
-                endX -= 1;
-                drawSelection();
-            }
+        document.getElementById('cancelCamera').addEventListener('click', () => {
+            document.getElementById('cameraPopup').style.display = 'none';
         });
-
-        showSelectionControls();
     </script>
 </body>
 </html>
