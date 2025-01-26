@@ -269,6 +269,35 @@
             color: white;
             border-color: #9b4dca;
         }
+        .camera-controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .camera-controls button {
+            background-color: #9b4dca;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.6rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        
+        .camera-controls button:hover {
+            background-color: #606c76;
+        }
+        
+        #video-feed {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -301,7 +330,9 @@
             </div>
         </div>
         <div class="camera-controls">
-            <button onclick="switchCamera()">Switch Camera</button>
+            <button onclick="switchCamera()">
+                📱 Switch Camera
+            </button>
         </div>
         <img src="{{ url_for('video_feed') }}" id="video-feed">
     </div>
