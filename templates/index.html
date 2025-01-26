@@ -106,6 +106,26 @@
                 <button id="explainButton" class="button button-outline camera-button">💡 Explain</button>
             </div>
         </div>
+        <div class="selection-controls" style="display: none;">
+            <button id="moveLeft" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Move Left
+            </button>
+            <button id="moveRight" class="btn btn-secondary">
+                Move Right <i class="fas fa-arrow-right"></i>
+            </button>
+            <button id="expandLeft" class="btn btn-secondary">
+                <i class="fas fa-expand-alt"></i> Expand Left
+            </button>
+            <button id="expandRight" class="btn btn-secondary">
+                Expand Right <i class="fas fa-expand-alt"></i>
+            </button>
+            <button id="shrinkLeft" class="btn btn-secondary">
+                <i class="fas fa-compress-alt"></i> Shrink Left
+            </button>
+            <button id="shrinkRight" class="btn btn-secondary">
+                Shrink Right <i class="fas fa-compress-alt"></i>
+            </button>
+        </div>
     </div>
 
     <div id="translatePopup">
@@ -437,6 +457,56 @@
             button.disabled = isLoading;
             button.classList.toggle('loading', isLoading);
         }
+
+        function showSelectionControls() {
+            document.querySelector('.selection-controls').style.display = 'block';
+        }
+
+        document.getElementById('moveLeft').addEventListener('click', () => {
+            const selection = document.querySelector('.selection');
+            const currentLeft = parseInt(selection.style.left);
+            selection.style.left = (currentLeft - 1) + 'px';
+        });
+
+        document.getElementById('moveRight').addEventListener('click', () => {
+            const selection = document.querySelector('.selection');
+            const currentLeft = parseInt(selection.style.left);
+            selection.style.left = (currentLeft + 1) + 'px';
+        });
+
+        document.getElementById('expandLeft').addEventListener('click', () => {
+            const selection = document.querySelector('.selection');
+            const currentLeft = parseInt(selection.style.left);
+            const currentWidth = parseInt(selection.style.width);
+            selection.style.left = (currentLeft - 1) + 'px';
+            selection.style.width = (currentWidth + 1) + 'px';
+        });
+
+        document.getElementById('expandRight').addEventListener('click', () => {
+            const selection = document.querySelector('.selection');
+            const currentWidth = parseInt(selection.style.width);
+            selection.style.width = (currentWidth + 1) + 'px';
+        });
+
+        document.getElementById('shrinkLeft').addEventListener('click', () => {
+            const selection = document.querySelector('.selection');
+            const currentLeft = parseInt(selection.style.left);
+            const currentWidth = parseInt(selection.style.width);
+            if (currentWidth > 1) {
+                selection.style.left = (currentLeft + 1) + 'px';
+                selection.style.width = (currentWidth - 1) + 'px';
+            }
+        });
+
+        document.getElementById('shrinkRight').addEventListener('click', () => {
+            const selection = document.querySelector('.selection');
+            const currentWidth = parseInt(selection.style.width);
+            if (currentWidth > 1) {
+                selection.style.width = (currentWidth - 1) + 'px';
+            }
+        });
+
+        showSelectionControls();
     </script>
 </body>
 </html>
