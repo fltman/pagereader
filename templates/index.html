@@ -410,7 +410,10 @@
 
         async function startCamera() {
             try {
-                // First, enumerate all available cameras
+                // First request general camera access to trigger permission prompt
+                await navigator.mediaDevices.getUserMedia({ video: true });
+                
+                // Then enumerate all available cameras
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
                 
@@ -418,12 +421,18 @@
                     throw new Error('No cameras found');
                 }
                 
+                // For iOS, we need to explicitly try both front and back cameras
+                const cameras = [
+                    { deviceId: '', facingMode: 'environment', label: 'Back Camera' },
+                    { deviceId: '', facingMode: 'user', label: 'Front Camera' }
+                ];
+                
                 if (videoDevices.length === 1) {
                     // If only one camera, use it directly
                     await initializeCamera(videoDevices[0].deviceId);
                 } else {
-                    // If multiple cameras, show the selection popup
-                    await showCameraSelector(videoDevices);
+                    // Show camera selection with explicit front/back options
+                    await showCameraSelector(cameras);
                 }
             } catch (error) {
                 console.error("Error accessing the camera:", error);
@@ -916,29 +925,17 @@
             const grid = document.querySelector('.camera-grid');
             grid.innerHTML = '';
             
-            cameras.forEach((camera, index) => {
+            cameras.forEach((camera) => {
                 const cameraItem = document.createElement('div');
                 cameraItem.className = 'camera-item';
-                cameraItem.dataset.deviceId = camera.deviceId;
                 
-                // Try to determine if it's front or back camera
-                let cameraType = '';
-                if (camera.facingMode === 'user' || camera.label.toLowerCase().includes('front')) {
-                    cameraType = '(Front Camera)';
-                } else if (camera.facingMode === 'environment' || camera.label.toLowerCase().includes('back')) {
-                    cameraType = '(Back Camera)';
-                }
-                
-                // Create a more descriptive label
-                const label = camera.label || `Camera ${index + 1}`;
                 cameraItem.innerHTML = `
-                    <div>📷 ${label}</div>
-                    <div>${cameraType}</div>
+                    <div>📷 ${camera.label}</div>
                 `;
                 
                 cameraItem.addEventListener('click', async () => {
                     document.getElementById('cameraPopup').style.display = 'none';
-                    await initializeCamera(camera.deviceId);
+                    await initializeCamera(camera.deviceId, camera.facingMode);
                 });
                 
                 grid.appendChild(cameraItem);
@@ -947,9 +944,10 @@
             document.getElementById('cameraPopup').style.display = 'block';
         }
 
-        async function initializeCamera(deviceId) {
+        async function initializeCamera(deviceId, facingMode) {
             const constraints = {
                 video: {
+                    facingMode: facingMode,
                     deviceId: deviceId ? { exact: deviceId } : undefined,
                     width: { ideal: 4096 },
                     height: { ideal: 2160 }
@@ -964,7 +962,6 @@
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
                 cameraView.srcObject = stream;
                 
-                // Wait for video to be ready
                 await new Promise(resolve => {
                     cameraView.onloadedmetadata = () => {
                         resolve();
