@@ -959,7 +959,7 @@
 
             cameraView.style.display = 'none';
             captureButton.style.display = 'none';
-            confirmSelectionButton.style.display = 'inline-block';
+            confirmSelectionButton.style.display = 'flex';
 
             // Initialize Cropper with high-quality options
             cropper = new Cropper(photoImage, {
@@ -1553,7 +1553,7 @@
                 });
 
                 startButton.style.display = 'none';
-                captureButton.style.display = 'inline-block';
+                captureButton.style.display = 'flex';
                 errorMessage.textContent = '';
             } catch (error) {
                 console.error('Error accessing camera:', error);
