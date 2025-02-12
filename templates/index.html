@@ -835,17 +835,16 @@
         captureButton.addEventListener('click', takePhoto);
         confirmSelectionButton.addEventListener('click', confirmSelection);
 
-        document.getElementById('newPhotoButton').addEventListener('click', () => {
-            // Hide results and show camera
-            document.getElementById('resultContainer').style.display = 'none';
-            document.getElementById('newPhotoButton').style.display = 'none';
+        document.getElementById('newPhotoButton').addEventListener('click', async () => {
+            // Hide results
+            showResultContainer(false);
             
             // Reset camera view
             document.getElementById('photoImage').style.display = 'none';
             document.getElementById('cameraView').style.display = 'block';
             
-            // Show capture button
-            document.getElementById('captureButton').style.display = 'block';
+            // Restart camera
+            await startCamera();
             
             // Clear previous results
             ocrText = '';
@@ -1030,14 +1029,12 @@
 
         document.getElementById('readButton').addEventListener('click', () => {
             const button = document.getElementById('readButton');
-            const playText = button.querySelector('.play-text');
-            const pauseText = button.querySelector('.pause-text');
+            const icon = button.querySelector('.material-icons');
 
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
-                playText.style.display = 'inline';
-                pauseText.style.display = 'none';
+                icon.textContent = 'record_voice_over';
                 setLoading(button, false);
             } else {
                 if (!ocrText) {
@@ -1045,21 +1042,10 @@
                     return;
                 }
                 
-                if (ocrText === lastPlayedText) {
-                    currentAudio.play();
-                    playText.style.display = 'none';
-                    pauseText.style.display = 'inline';
-                } else {
-                    if (currentAudio) {
-                        currentAudio.pause();
-                        currentAudio = null;
-                    }
-                    playText.style.display = 'none';
-                    pauseText.style.display = 'inline';
-                    setLoading(button, true);
-                    readText(ocrText);
-                    lastPlayedText = ocrText;
-                }
+                icon.textContent = 'pause';
+                setLoading(button, true);
+                readText(ocrText);
+                lastPlayedText = ocrText;
             }
         });
 
@@ -1119,6 +1105,8 @@
 
         function resetPlayButton() {
             const button = document.getElementById('readButton');
+            const icon = button.querySelector('.material-icons');
+            icon.textContent = 'record_voice_over';
             setLoading(button, false);
             currentAudio = null;
             lastPlayedText = '';
@@ -1596,11 +1584,14 @@
         function showResultContainer(show) {
             document.getElementById('resultContainer').style.display = show ? 'block' : 'none';
             document.getElementById('newPhotoButton').style.display = show ? 'block' : 'none';
+            
             if (show) {
-                // Hide other floating action buttons when showing results
+                // Hide camera-related buttons when showing results
                 document.getElementById('captureButton').style.display = 'none';
                 document.getElementById('confirmSelectionButton').style.display = 'none';
                 document.getElementById('startButton').style.display = 'none';
+                // Make sure the new photo button is visible
+                document.getElementById('newPhotoButton').style.display = 'block';
             } else {
                 // Show start button when hiding results
                 document.getElementById('startButton').style.display = 'block';
@@ -1619,13 +1610,8 @@
                 ]
             });
             
-            // Show the result container and new photo button
-            document.getElementById('resultContainer').style.display = 'block';
-            document.getElementById('newPhotoButton').style.display = 'block';
-            
-            // Hide the capture and confirm buttons
-            document.getElementById('captureButton').style.display = 'none';
-            document.getElementById('confirmSelectionButton').style.display = 'none';
+            // Show results and manage button visibility
+            showResultContainer(true);
         }
     </script>
 </body>
