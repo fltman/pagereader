@@ -440,8 +440,8 @@
         }
 
         .icon-button {
-            width: 70px;
-            height: 70px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             padding: 0;
             border: none;
@@ -458,21 +458,19 @@
         }
 
         .icon-button .material-icons {
-            font-size: 28px;
+            font-size: 32px;
         }
 
         .icon-button .button-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: none;
         }
 
         .action-buttons {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 16px;
             margin: 20px auto;
-            max-width: 300px;
+            max-width: 280px;
             padding: 0 20px;
         }
 
@@ -483,6 +481,26 @@
 
         #settingsButton .material-icons {
             font-size: 24px;
+        }
+
+        /* Position the new photo button fixed at bottom */
+        .floating-action-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 72px;
+            height: 72px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .floating-action-button .material-icons {
+            font-size: 36px;
+        }
+
+        /* Remove the old button-row style for new photo */
+        #resultContainer .button-row {
+            display: none;
         }
     </style>
 </head>
@@ -512,27 +530,20 @@
             <div class="action-buttons">
                 <button id="readButton" class="icon-button">
                     <span class="material-icons">record_voice_over</span>
-                    <span class="button-label">Read</span>
                 </button>
                 <button id="translateButton" class="icon-button">
                     <span class="material-icons">translate</span>
-                    <span class="button-label">Translate</span>
                 </button>
                 <button id="simplifyButton" class="icon-button">
                     <span class="material-icons">auto_fix_high</span>
-                    <span class="button-label">Simplify</span>
                 </button>
                 <button id="explainButton" class="icon-button">
                     <span class="material-icons">psychology</span>
-                    <span class="button-label">Explain</span>
                 </button>
             </div>
-            <div class="button-row" style="margin-top: 20px;">
-                <button id="newPhotoButton" class="icon-button">
-                    <span class="material-icons">photo_camera</span>
-                    <span class="button-label">New Photo</span>
-                </button>
-            </div>
+            <button id="newPhotoButton" class="icon-button floating-action-button">
+                <span class="material-icons">photo_camera</span>
+            </button>
         </div>
     </div>
 
