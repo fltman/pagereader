@@ -493,6 +493,7 @@
             justify-content: center;
         }
 
+        /* Update all Material Icons in floating action buttons */
         .floating-action-button .material-icons {
             font-size: 36px;
             width: 36px;
@@ -500,6 +501,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            line-height: 1;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Remove any specific overrides for individual buttons */
+        #startButton .material-icons,
+        #captureButton .material-icons,
+        #confirmSelectionButton .material-icons {
+            font-size: 36px;
+            width: 36px;
+            height: 36px;
         }
 
         /* Remove the old button-row style for new photo */
