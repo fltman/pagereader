@@ -192,15 +192,27 @@ def simplify_text():
 		return jsonify({'error': 'Missing text'}), 400
 
 	text = data['text']
+	system_prompt = data.get('systemPrompt', '')
+	language = data.get('language', 'english')
 
-	prompt = f"""simplify this text and make it easier to understand and use the same language as the original text: \n\n {text}"""
+	# Use system prompt if provided, otherwise use default
+	if system_prompt:
+		prompt = f"{system_prompt}\n\nSimplify this text: {text}"
+	else:
+		prompt = f"Simplify this text and make it easier to understand in {language}: {text}"
 
 	print(prompt)
-	model = "gpt-4o"
-	messages = [{"role": "user", "content": prompt}]
+	model = "gpt-4"
+	messages = [
+	    {"role": "system", "content": system_prompt} if system_prompt else None,
+	    {"role": "user", "content": prompt}
+	]
+	messages = [m for m in messages if m is not None]  # Remove None values
 
-	chat_completion = client.chat.completions.create(model=model,
-	                                                 messages=messages)
+	chat_completion = client.chat.completions.create(
+	    model=model,
+	    messages=messages
+	)
 	simplified_text = chat_completion.choices[0].message.content
 
 	return jsonify({'simplifiedText': simplified_text})

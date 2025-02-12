@@ -341,6 +341,33 @@
             color: white;
             border-color: #9b4dca;
         }
+
+        .settings-section {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .settings-section h4 {
+            margin-bottom: 10px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d1d1;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .help-text {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        #settingsButton {
+            margin-left: auto;
+        }
     </style>
 </head>
 
@@ -371,6 +398,7 @@
                 <button id="translateButton" class="button button-outline camera-button">🌐 Translate</button>
                 <button id="simplifyButton" class="button button-outline camera-button">⚙️ Simplify</button>
                 <button id="explainButton" class="button button-outline camera-button">💡 Explain</button>
+                <button id="settingsButton" class="button button-outline camera-button">⚙️ Settings</button>
             </div>
             <div class="button-row" style="margin-top: 20px;">
                 <button id="newPhotoButton" class="button button-outline camera-button">📸 Take New Photo</button>
@@ -453,6 +481,38 @@
                 <!-- Cameras will be populated here -->
             </div>
             <button id="cancelCamera" class="button">Cancel</button>
+        </div>
+    </div>
+
+    <div id="settingsPopup" class="modal">
+        <div class="modal-content">
+            <h3>Settings</h3>
+            
+            <div class="settings-section">
+                <h4>Preferred Language</h4>
+                <div class="language-grid">
+                    <!-- Same language options as translate popup -->
+                    <div class="language-item" data-lang="svenska">
+                        🇸🇪 Svenska
+                    </div>
+                    <div class="language-item" data-lang="english">
+                        🇬🇧 English
+                    </div>
+                    <!-- ... other language items ... -->
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>System Prompt</h4>
+                <textarea id="systemPrompt" rows="4" class="form-control" 
+                    placeholder="Enter custom system prompt..."></textarea>
+                <p class="help-text">This prompt will be used to guide the AI's responses.</p>
+            </div>
+
+            <div class="button-row">
+                <button id="saveSettings" class="button">Save Settings</button>
+                <button id="cancelSettings" class="button button-outline">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -850,36 +910,97 @@
             simplifyText(ocrText);
         });
 
+        // Settings management
+        let settings = {
+            preferredLanguage: localStorage.getItem('preferredLanguage') || 'english',
+            systemPrompt: localStorage.getItem('systemPrompt') || ''
+        };
+
+        document.getElementById('settingsButton').addEventListener('click', () => {
+            // Show settings popup
+            document.getElementById('settingsPopup').style.display = 'block';
+            
+            // Set current values
+            document.getElementById('systemPrompt').value = settings.systemPrompt;
+            
+            // Highlight selected language
+            document.querySelectorAll('#settingsPopup .language-item').forEach(item => {
+                if (item.dataset.lang === settings.preferredLanguage) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        });
+
+        // Handle language selection in settings
+        document.querySelectorAll('#settingsPopup .language-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('#settingsPopup .language-item').forEach(i => {
+                    i.classList.remove('selected');
+                });
+                item.classList.add('selected');
+            });
+        });
+
+        document.getElementById('saveSettings').addEventListener('click', () => {
+            // Save selected language
+            const selectedLang = document.querySelector('#settingsPopup .language-item.selected');
+            if (selectedLang) {
+                settings.preferredLanguage = selectedLang.dataset.lang;
+                localStorage.setItem('preferredLanguage', settings.preferredLanguage);
+            }
+            
+            // Save system prompt
+            settings.systemPrompt = document.getElementById('systemPrompt').value;
+            localStorage.setItem('systemPrompt', settings.systemPrompt);
+            
+            // Close popup
+            document.getElementById('settingsPopup').style.display = 'none';
+        });
+
+        document.getElementById('cancelSettings').addEventListener('click', () => {
+            document.getElementById('settingsPopup').style.display = 'none';
+        });
+
         function simplifyText(text) {
             showLoading('Simplifying...');
+
+            const prompt = settings.systemPrompt ? 
+                `${settings.systemPrompt}\n\nSimplify this text: ${text}` :
+                `Simplify this text and make it easier to understand in ${settings.preferredLanguage}: ${text}`;
 
             fetch('/api/simplify', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({text: text})
+                body: JSON.stringify({
+                    text: text,
+                    systemPrompt: settings.systemPrompt,
+                    language: settings.preferredLanguage
+                })
             })
-                .then(response => response.json())
-                .then(data => {
-                    ocrText = data.simplifiedText;
-                    const parsedText = marked.parse(ocrText);
-                    document.getElementById('ocrResult').innerHTML = `Simplified Result: ${parsedText}`;
-                    renderMathInElement(document.getElementById('ocrResult'), {
-                        delimiters: [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false}
-                        ]
-                    });
-                    setLoading(document.getElementById('simplifyButton'), false);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    setLoading(document.getElementById('simplifyButton'), false);
-                })
-                .finally(() => {
-                    hideLoading();
+            .then(response => response.json())
+            .then(data => {
+                ocrText = data.simplifiedText;
+                const parsedText = marked.parse(ocrText);
+                document.getElementById('ocrResult').innerHTML = `Simplified Result: ${parsedText}`;
+                renderMathInElement(document.getElementById('ocrResult'), {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
                 });
+                setLoading(document.getElementById('simplifyButton'), false);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                setLoading(document.getElementById('simplifyButton'), false);
+            })
+            .finally(() => {
+                hideLoading();
+            });
         }
 
         document.getElementById('explainButton').addEventListener('click', () => {
