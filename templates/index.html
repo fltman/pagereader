@@ -545,10 +545,10 @@
                     <span class="material-icons">psychology</span>
                 </button>
             </div>
-            <button id="newPhotoButton" class="icon-button floating-action-button" style="display: none;">
-                <span class="material-icons">camera</span>
-            </button>
         </div>
+        <button id="newPhotoButton" class="icon-button floating-action-button" style="display: none;">
+            <span class="material-icons">camera</span>
+        </button>
     </div>
 
     <div id="translatePopup" class="modal">
@@ -836,9 +836,20 @@
         confirmSelectionButton.addEventListener('click', confirmSelection);
 
         document.getElementById('newPhotoButton').addEventListener('click', () => {
-            resetCamera();
-            startButton.style.display = 'none';
-            captureButton.style.display = 'inline-block';
+            // Hide results and show camera
+            document.getElementById('resultContainer').style.display = 'none';
+            document.getElementById('newPhotoButton').style.display = 'none';
+            
+            // Reset camera view
+            document.getElementById('photoImage').style.display = 'none';
+            document.getElementById('cameraView').style.display = 'block';
+            
+            // Show capture button
+            document.getElementById('captureButton').style.display = 'block';
+            
+            // Clear previous results
+            ocrText = '';
+            document.getElementById('ocrResult').innerHTML = '';
         });
 
         async function startCamera() {
@@ -1594,6 +1605,27 @@
                 // Show start button when hiding results
                 document.getElementById('startButton').style.display = 'block';
             }
+        }
+
+        // Add this function to handle OCR result display
+        function showOCRResult(text) {
+            ocrText = text;
+            const parsedText = marked.parse(text);
+            document.getElementById('ocrResult').innerHTML = parsedText;
+            renderMathInElement(document.getElementById('ocrResult'), {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+            
+            // Show the result container and new photo button
+            document.getElementById('resultContainer').style.display = 'block';
+            document.getElementById('newPhotoButton').style.display = 'block';
+            
+            // Hide the capture and confirm buttons
+            document.getElementById('captureButton').style.display = 'none';
+            document.getElementById('confirmSelectionButton').style.display = 'none';
         }
     </script>
 </body>
