@@ -300,33 +300,39 @@ def explain_image():
 	system_prompt = data.get('systemPrompt', '')
 	language = data.get('language', 'english')
 
+	print(f"Explaining in {language} with system prompt: {system_prompt}")
+
 	# Create the prompt based on settings
 	if system_prompt:
 		user_prompt = f"{system_prompt}\n\nExplain how to solve this without revealing the answer in {language}."
 	else:
 		user_prompt = f"Explain how to solve this without revealing the answer. Provide the explanation in {language}."
 
+	# Build messages array and filter out None values
+	messages = [
+	    {"role": "system", "content": system_prompt} if system_prompt else None,
+	    {
+	        "role": "user",
+	        "content": [
+	            {
+	                "type": "text",
+	                "text": user_prompt
+	            },
+	            {
+	                "type": "image_url",
+	                "image_url": {
+	                    "url": f"data:image/jpeg;base64,{image_data}"
+	                }
+	            }
+	        ]
+	    }
+	]
+	messages = [m for m in messages if m is not None]
+
 	# Get vision analysis
 	response = client.chat.completions.create(
-	    model="gpt-4o",
-	    messages=[
-	        {"role": "system", "content": system_prompt} if system_prompt else None,
-	        {
-	            "role": "user",
-	            "content": [
-	                {
-	                    "type": "text",
-	                    "text": user_prompt
-	                },
-	                {
-	                    "type": "image_url",
-	                    "image_url": {
-	                        "url": f"data:image/jpeg;base64,{image_data}"
-	                    }
-	                }
-	            ]
-	        }
-	    ],
+	    model="gpt-4o",  # Changed back to gpt-4o
+	    messages=messages,
 	    max_tokens=300
 	)
 

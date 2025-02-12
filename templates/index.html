@@ -1302,6 +1302,12 @@
 
             const imageData = tempCanvas.toDataURL('image/jpeg');
 
+            // Log the preferences being sent
+            console.log('Using preferences:', {
+                language: settings.preferredLanguage,
+                systemPrompt: settings.systemPrompt
+            });
+
             // Include system prompt and preferred language in the request
             fetch('/api/explain', {
                 method: 'POST',
