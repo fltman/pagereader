@@ -29,7 +29,7 @@
             position: relative;
             padding-top: 60px; /* Space for settings button */
             padding-bottom: 100px; /* Add space for floating button */
-            text-align: center;
+            text-align: left;
             width: 100%;
             max-width: 500px;
         }
@@ -493,6 +493,18 @@
         /* Remove the old button-row style for new photo */
         #resultContainer .button-row {
             display: none;
+        }
+
+        #ocrResult {
+            text-align: left;
+            padding: 0 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Keep certain elements centered */
+        .image-container,
+        .action-buttons {
+            text-align: center;
         }
     </style>
 </head>
