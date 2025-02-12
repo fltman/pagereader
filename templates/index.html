@@ -960,41 +960,11 @@
         }
 
         function takePhoto() {
-            // Create a high-resolution canvas matching the video's intrinsic size
-            const canvas = document.createElement('canvas');
-            canvas.width = cameraView.videoWidth;
-            canvas.height = cameraView.videoHeight;
-
-            // Draw the full-resolution image
-            canvas.getContext('2d').drawImage(cameraView, 0, 0);
-
-            const photoImage = document.getElementById('photoImage');
-            photoImage.src = canvas.toDataURL('image/png', 1.0); // Use PNG with max quality
-            photoImage.style.display = 'block';
-
-            cameraView.style.display = 'none';
+            // Hide capture button
             captureButton.style.display = 'none';
-            confirmSelectionButton.style.display = 'inline-block';
-
-            // Initialize Cropper with high-quality options
-            cropper = new Cropper(photoImage, {
-                viewMode: 1,
-                dragMode: 'crop',
-                aspectRatio: NaN,
-                autoCropArea: 0.8,
-                restore: false,
-                guides: true,
-                center: true,
-                highlight: false,
-                cropBoxMovable: true,
-                cropBoxResizable: true,
-                toggleDragModeOnDblclick: false,
-                minContainerWidth: 100,
-                minContainerHeight: 100,
-                quality: 1, // Maximum quality
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: 'high'
-            });
+            // Show confirm button
+            confirmSelectionButton.style.display = 'block';
+            // ... rest of the takePhoto function
         }
 
         function confirmSelection() {
@@ -1567,8 +1537,11 @@
                     };
                 });
 
+                // Hide all floating action buttons first
                 startButton.style.display = 'none';
-                captureButton.style.display = 'inline-block';
+                confirmSelectionButton.style.display = 'none';
+                // Then show only the capture button
+                captureButton.style.display = 'block';
                 errorMessage.textContent = '';
             } catch (error) {
                 console.error('Error accessing camera:', error);
@@ -1653,13 +1626,15 @@
             document.getElementById('resultContainer').style.display = show ? 'block' : 'none';
             
             if (show) {
-                // Hide camera-related buttons when showing results
-                document.getElementById('captureButton').style.display = 'none';
-                document.getElementById('confirmSelectionButton').style.display = 'none';
-                document.getElementById('startButton').style.display = 'none';
+                // Hide all camera-related buttons
+                startButton.style.display = 'none';
+                captureButton.style.display = 'none';
+                confirmSelectionButton.style.display = 'none';
             } else {
-                // Show start button when hiding results
-                document.getElementById('startButton').style.display = 'block';
+                // Show only the start button
+                startButton.style.display = 'block';
+                captureButton.style.display = 'none';
+                confirmSelectionButton.style.display = 'none';
             }
         }
 
