@@ -553,21 +553,6 @@
         .handle-sw { bottom: -10px; left: -10px; cursor: sw-resize; }
         .handle-s  { bottom: -10px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
         .handle-se { bottom: -10px; right: -10px; cursor: se-resize; }
-
-        /* Update the floating action button styles to be more specific */
-        button.icon-button.floating-action-button {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
-        button.icon-button.floating-action-button .material-icons {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
     </style>
 </head>
 
@@ -960,11 +945,41 @@
         }
 
         function takePhoto() {
-            // Hide capture button
+            // Create a high-resolution canvas matching the video's intrinsic size
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraView.videoWidth;
+            canvas.height = cameraView.videoHeight;
+
+            // Draw the full-resolution image
+            canvas.getContext('2d').drawImage(cameraView, 0, 0);
+
+            const photoImage = document.getElementById('photoImage');
+            photoImage.src = canvas.toDataURL('image/png', 1.0); // Use PNG with max quality
+            photoImage.style.display = 'block';
+
+            cameraView.style.display = 'none';
             captureButton.style.display = 'none';
-            // Show confirm button
-            confirmSelectionButton.style.display = 'block';
-            // ... rest of the takePhoto function
+            confirmSelectionButton.style.display = 'inline-block';
+
+            // Initialize Cropper with high-quality options
+            cropper = new Cropper(photoImage, {
+                viewMode: 1,
+                dragMode: 'crop',
+                aspectRatio: NaN,
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+                minContainerWidth: 100,
+                minContainerHeight: 100,
+                quality: 1, // Maximum quality
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
         }
 
         function confirmSelection() {
@@ -1537,11 +1552,8 @@
                     };
                 });
 
-                // Hide all floating action buttons first
                 startButton.style.display = 'none';
-                confirmSelectionButton.style.display = 'none';
-                // Then show only the capture button
-                captureButton.style.display = 'block';
+                captureButton.style.display = 'inline-block';
                 errorMessage.textContent = '';
             } catch (error) {
                 console.error('Error accessing camera:', error);
@@ -1626,15 +1638,13 @@
             document.getElementById('resultContainer').style.display = show ? 'block' : 'none';
             
             if (show) {
-                // Hide all camera-related buttons
-                startButton.style.display = 'none';
-                captureButton.style.display = 'none';
-                confirmSelectionButton.style.display = 'none';
+                // Hide camera-related buttons when showing results
+                document.getElementById('captureButton').style.display = 'none';
+                document.getElementById('confirmSelectionButton').style.display = 'none';
+                document.getElementById('startButton').style.display = 'none';
             } else {
-                // Show only the start button
-                startButton.style.display = 'block';
-                captureButton.style.display = 'none';
-                confirmSelectionButton.style.display = 'none';
+                // Show start button when hiding results
+                document.getElementById('startButton').style.display = 'block';
             }
         }
 
