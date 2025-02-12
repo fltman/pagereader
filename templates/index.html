@@ -201,30 +201,89 @@
             overflow-y: auto;
         }
 
+        .language-selector {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 0 10px;
+        }
+
+        .language-search {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 10px 0;
+            margin-bottom: 10px;
+            z-index: 1;
+        }
+
+        .language-search-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .language-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .language-category h5 {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .language-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 10px;
-            margin: 20px 0;
         }
 
         .language-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            text-align: center;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
         }
 
         .language-item:hover {
-            background-color: #f0f0f0;
+            background-color: #f5f5f5;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .language-item.selected {
             background-color: #9b4dca;
             color: white;
             border-color: #9b4dca;
+        }
+
+        .language-item .flag {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .language-item .name {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .language-item .native {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .language-item.selected .native {
+            color: rgba(255,255,255,0.8);
         }
 
         .play-text,
@@ -368,6 +427,12 @@
         #settingsButton {
             margin-left: auto;
         }
+
+        /* Make modal content wider for language selector */
+        .modal-content {
+            width: 90%;
+            max-width: 600px;
+        }
     </style>
 </head>
 
@@ -395,7 +460,7 @@
                     <span class="play-text">🎙️ Play</span>
                     <span class="pause-text" style="display: none;">⏸️ Pause</span>
                 </button>
-                <button id="translateButton" class="button button-outline camera-button">🌐 Translate</button>
+                <button id="translateButton" class="button button-outline camera-button">�� Translate</button>
                 <button id="simplifyButton" class="button button-outline camera-button">⚙️ Simplify</button>
                 <button id="explainButton" class="button button-outline camera-button">💡 Explain</button>
                 <button id="settingsButton" class="button button-outline camera-button">⚙️ Settings</button>
@@ -409,52 +474,106 @@
     <div id="translatePopup" class="modal">
         <div class="modal-content">
             <h3>Select Language</h3>
-            <div class="language-grid">
-                <!-- Top priority languages -->
-                <div class="language-item" data-lang="svenska">
-                    🇸🇪 Svenska
+            <div class="language-selector">
+                <div class="language-search">
+                    <input type="text" class="language-search-input" placeholder="Search languages...">
                 </div>
-                <div class="language-item" data-lang="english">
-                    🇬🇧 English
-                </div>
-
-                <!-- Other Scandinavian languages -->
-                <div class="language-item" data-lang="dansk">
-                    🇩🇰 Dansk
-                </div>
-                <div class="language-item" data-lang="norsk">
-                    🇳🇴 Norsk
-                </div>
-                <div class="language-item" data-lang="íslenska">
-                    🇮🇸 Íslenska
-                </div>
-                <div class="language-item" data-lang="suomi">
-                    🇫🇮 Suomi
-                </div>
-
-                <!-- Other European languages (alphabetically) -->
-                <div class="language-item" data-lang="deutsch">
-                    🇩🇪 Deutsch
-                </div>
-                <div class="language-item" data-lang="español">
-                    🇪🇸 Español
-                </div>
-                <div class="language-item" data-lang="français">
-                    🇫🇷 Français
-                </div>
-                <div class="language-item" data-lang="italiano">
-                    🇮🇹 Italiano
-                </div>
-                <div class="language-item" data-lang="nederlands">
-                    🇳🇱 Nederlands
-                </div>
-                <div class="language-item" data-lang="português">
-                    🇵🇹 Português
-                </div>
-
-                <!-- Arabic -->
-                <div class="language-item" data-lang="العربية">
-                    🇸🇦 العربية
+                <div class="language-categories">
+                    <div class="language-category">
+                        <h5>Preferred Languages</h5>
+                        <div class="language-grid">
+                            <div class="language-item" data-lang="svenska">
+                                <span class="flag">🇸🇪</span>
+                                <span class="name">Svenska</span>
+                                <span class="native">Swedish</span>
+                            </div>
+                            <div class="language-item" data-lang="english">
+                                <span class="flag">🇬🇧</span>
+                                <span class="name">English</span>
+                                <span class="native">English</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="language-category">
+                        <h5>Nordic Languages</h5>
+                        <div class="language-grid">
+                            <div class="language-item" data-lang="dansk">
+                                <span class="flag">🇩🇰</span>
+                                <span class="name">Dansk</span>
+                                <span class="native">Danish</span>
+                            </div>
+                            <div class="language-item" data-lang="norsk">
+                                <span class="flag">🇳🇴</span>
+                                <span class="name">Norsk</span>
+                                <span class="native">Norwegian</span>
+                            </div>
+                            <div class="language-item" data-lang="íslenska">
+                                <span class="flag">🇮🇸</span>
+                                <span class="name">Íslenska</span>
+                                <span class="native">Icelandic</span>
+                            </div>
+                            <div class="language-item" data-lang="suomi">
+                                <span class="flag">🇫🇮</span>
+                                <span class="name">Suomi</span>
+                                <span class="native">Finnish</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="language-category">
+                        <h5>Other European Languages</h5>
+                        <div class="language-grid">
+                            <div class="language-item" data-lang="deutsch">
+                                <span class="flag">🇩🇪</span>
+                                <span class="name">Deutsch</span>
+                                <span class="native">German</span>
+                            </div>
+                            <div class="language-item" data-lang="español">
+                                <span class="flag">🇪🇸</span>
+                                <span class="name">Español</span>
+                                <span class="native">Spanish</span>
+                            </div>
+                            <div class="language-item" data-lang="français">
+                                <span class="flag">🇫🇷</span>
+                                <span class="name">Français</span>
+                                <span class="native">French</span>
+                            </div>
+                            <div class="language-item" data-lang="italiano">
+                                <span class="flag">🇮🇹</span>
+                                <span class="name">Italiano</span>
+                                <span class="native">Italian</span>
+                            </div>
+                            <div class="language-item" data-lang="nederlands">
+                                <span class="flag">🇳🇱</span>
+                                <span class="name">Nederlands</span>
+                                <span class="native">Dutch</span>
+                            </div>
+                            <div class="language-item" data-lang="português">
+                                <span class="flag">🇵🇹</span>
+                                <span class="name">Português</span>
+                                <span class="native">Portuguese</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="language-category">
+                        <h5>Other Languages</h5>
+                        <div class="language-grid">
+                            <div class="language-item" data-lang="العربية">
+                                <span class="flag">🇸🇦</span>
+                                <span class="name">العربية</span>
+                                <span class="native">Arabic</span>
+                            </div>
+                            <div class="language-item" data-lang="中文">
+                                <span class="flag">🇨🇳</span>
+                                <span class="name">中文</span>
+                                <span class="native">Chinese</span>
+                            </div>
+                            <div class="language-item" data-lang="日本語">
+                                <span class="flag">🇯🇵</span>
+                                <span class="name">日本語</span>
+                                <span class="native">Japanese</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <button id="cancelTranslate" class="button">Cancel</button>
@@ -490,15 +609,107 @@
             
             <div class="settings-section">
                 <h4>Preferred Language</h4>
-                <div class="language-grid">
-                    <!-- Same language options as translate popup -->
-                    <div class="language-item" data-lang="svenska">
-                        🇸🇪 Svenska
+                <div class="language-selector">
+                    <div class="language-search">
+                        <input type="text" class="language-search-input" placeholder="Search languages...">
                     </div>
-                    <div class="language-item" data-lang="english">
-                        🇬🇧 English
+                    <div class="language-categories">
+                        <div class="language-category">
+                            <h5>Preferred Languages</h5>
+                            <div class="language-grid">
+                                <div class="language-item" data-lang="svenska">
+                                    <span class="flag">🇸🇪</span>
+                                    <span class="name">Svenska</span>
+                                    <span class="native">Swedish</span>
+                                </div>
+                                <div class="language-item" data-lang="english">
+                                    <span class="flag">🇬🇧</span>
+                                    <span class="name">English</span>
+                                    <span class="native">English</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="language-category">
+                            <h5>Nordic Languages</h5>
+                            <div class="language-grid">
+                                <div class="language-item" data-lang="dansk">
+                                    <span class="flag">🇩🇰</span>
+                                    <span class="name">Dansk</span>
+                                    <span class="native">Danish</span>
+                                </div>
+                                <div class="language-item" data-lang="norsk">
+                                    <span class="flag">🇳🇴</span>
+                                    <span class="name">Norsk</span>
+                                    <span class="native">Norwegian</span>
+                                </div>
+                                <div class="language-item" data-lang="íslenska">
+                                    <span class="flag">🇮🇸</span>
+                                    <span class="name">Íslenska</span>
+                                    <span class="native">Icelandic</span>
+                                </div>
+                                <div class="language-item" data-lang="suomi">
+                                    <span class="flag">🇫🇮</span>
+                                    <span class="name">Suomi</span>
+                                    <span class="native">Finnish</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="language-category">
+                            <h5>Other European Languages</h5>
+                            <div class="language-grid">
+                                <div class="language-item" data-lang="deutsch">
+                                    <span class="flag">🇩🇪</span>
+                                    <span class="name">Deutsch</span>
+                                    <span class="native">German</span>
+                                </div>
+                                <div class="language-item" data-lang="español">
+                                    <span class="flag">🇪🇸</span>
+                                    <span class="name">Español</span>
+                                    <span class="native">Spanish</span>
+                                </div>
+                                <div class="language-item" data-lang="français">
+                                    <span class="flag">🇫🇷</span>
+                                    <span class="name">Français</span>
+                                    <span class="native">French</span>
+                                </div>
+                                <div class="language-item" data-lang="italiano">
+                                    <span class="flag">🇮🇹</span>
+                                    <span class="name">Italiano</span>
+                                    <span class="native">Italian</span>
+                                </div>
+                                <div class="language-item" data-lang="nederlands">
+                                    <span class="flag">🇳🇱</span>
+                                    <span class="name">Nederlands</span>
+                                    <span class="native">Dutch</span>
+                                </div>
+                                <div class="language-item" data-lang="português">
+                                    <span class="flag">🇵🇹</span>
+                                    <span class="name">Português</span>
+                                    <span class="native">Portuguese</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="language-category">
+                            <h5>Other Languages</h5>
+                            <div class="language-grid">
+                                <div class="language-item" data-lang="العربية">
+                                    <span class="flag">🇸🇦</span>
+                                    <span class="name">العربية</span>
+                                    <span class="native">Arabic</span>
+                                </div>
+                                <div class="language-item" data-lang="中文">
+                                    <span class="flag">🇨🇳</span>
+                                    <span class="name">中文</span>
+                                    <span class="native">Chinese</span>
+                                </div>
+                                <div class="language-item" data-lang="日本語">
+                                    <span class="flag">🇯🇵</span>
+                                    <span class="name">日本語</span>
+                                    <span class="native">Japanese</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <!-- ... other language items ... -->
                 </div>
             </div>
 
@@ -1207,6 +1418,74 @@
 
         document.getElementById('cancelCamera').addEventListener('click', () => {
             document.getElementById('cameraPopup').style.display = 'none';
+        });
+
+        function initializeLanguageSelector(container, onSelect) {
+            const searchInput = container.querySelector('.language-search-input');
+            const items = container.querySelectorAll('.language-item');
+
+            // Handle search
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                items.forEach(item => {
+                    const name = item.querySelector('.name').textContent.toLowerCase();
+                    const native = item.querySelector('.native').textContent.toLowerCase();
+                    const matches = name.includes(searchTerm) || native.includes(searchTerm);
+                    
+                    item.style.display = matches ? '' : 'none';
+                });
+
+                // Show/hide categories based on visible items
+                container.querySelectorAll('.language-category').forEach(category => {
+                    const hasVisibleItems = [...category.querySelectorAll('.language-item')]
+                        .some(item => item.style.display !== 'none');
+                    category.style.display = hasVisibleItems ? '' : 'none';
+                });
+            });
+
+            // Handle selection
+            items.forEach(item => {
+                item.addEventListener('click', () => {
+                    // Remove selection from other items
+                    items.forEach(i => i.classList.remove('selected'));
+                    // Add selection to clicked item
+                    item.classList.add('selected');
+                    // Call callback with selected language
+                    onSelect(item.dataset.lang);
+                });
+            });
+
+            return {
+                setSelected: (lang) => {
+                    items.forEach(item => {
+                        item.classList.toggle('selected', item.dataset.lang === lang);
+                    });
+                }
+            };
+        }
+
+        // Initialize language selectors
+        document.addEventListener('DOMContentLoaded', () => {
+            // Settings language selector
+            const settingsSelector = initializeLanguageSelector(
+                document.querySelector('#settingsPopup .language-selector'),
+                (lang) => {
+                    settings.preferredLanguage = lang;
+                }
+            );
+
+            // Translate language selector
+            const translateSelector = initializeLanguageSelector(
+                document.querySelector('#translatePopup .language-selector'),
+                (lang) => {
+                    translateText(ocrText, lang);
+                    document.getElementById('translatePopup').style.display = 'none';
+                }
+            );
+
+            // Set initial selected language in settings
+            settingsSelector.setSelected(settings.preferredLanguage);
         });
     </script>
 </body>
