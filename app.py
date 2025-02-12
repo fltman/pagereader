@@ -195,23 +195,22 @@ def simplify_text():
 	system_prompt = data.get('systemPrompt', '')
 	language = data.get('language', 'english')
 
-	# Use system prompt if provided, otherwise use default
-	if system_prompt:
-		prompt = f"{system_prompt}\n\nSimplify this text: {text}"
-	else:
-		prompt = f"Simplify this text and make it easier to understand in {language}: {text}"
+	print(f"Simplifying in {language} with system prompt: {system_prompt}")
 
-	print(prompt)
-	model = "gpt-4"
+	# Create the user prompt
+	user_prompt = f"Simplify this text and make it easier to understand in {language}: {text}"
+
+	# Build messages array and filter out None values
 	messages = [
 	    {"role": "system", "content": system_prompt} if system_prompt else None,
-	    {"role": "user", "content": prompt}
+	    {"role": "user", "content": user_prompt}
 	]
-	messages = [m for m in messages if m is not None]  # Remove None values
+	messages = [m for m in messages if m is not None]
 
 	chat_completion = client.chat.completions.create(
-	    model=model,
-	    messages=messages
+	    model="gpt-4o",  # Use consistent model
+	    messages=messages,
+	    max_tokens=300
 	)
 	simplified_text = chat_completion.choices[0].message.content
 
