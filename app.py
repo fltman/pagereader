@@ -296,28 +296,39 @@ def explain_image():
 		return jsonify({'error': 'No image provided'}), 400
 
 	# Get base64 image from request
-	image_data = data['image'].split(
-	    ',')[1] if ',' in data['image'] else data['image']
+	image_data = data['image'].split(',')[1] if ',' in data['image'] else data['image']
+	system_prompt = data.get('systemPrompt', '')
+	language = data.get('language', 'english')
+
+	# Create the prompt based on settings
+	if system_prompt:
+		user_prompt = f"{system_prompt}\n\nExplain how to solve this without revealing the answer in {language}."
+	else:
+		user_prompt = f"Explain how to solve this without revealing the answer. Provide the explanation in {language}."
 
 	# Get vision analysis
 	response = client.chat.completions.create(
-	    model="gpt-4o",
-	    messages=[{
-	        "role":
-	        "user",
-	        "content": [{
-	            "type":
-	            "text",
-	            "text":
-	            "Explain how to solve this without revealing the answer. if there is text in the image, explain using the same language as the text."
-	        }, {
-	            "type": "image_url",
-	            "image_url": {
-	                "url": f"data:image/jpeg;base64,{image_data}"
-	            }
-	        }]
-	    }],
-	    max_tokens=300)
+	    model="gpt-4-vision-preview",
+	    messages=[
+	        {"role": "system", "content": system_prompt} if system_prompt else None,
+	        {
+	            "role": "user",
+	            "content": [
+	                {
+	                    "type": "text",
+	                    "text": user_prompt
+	                },
+	                {
+	                    "type": "image_url",
+	                    "image_url": {
+	                        "url": f"data:image/jpeg;base64,{image_data}"
+	                    }
+	                }
+	            ]
+	        }
+	    ],
+	    max_tokens=300
+	)
 
 	explanation = response.choices[0].message.content
 	return jsonify({'explanation': explanation})

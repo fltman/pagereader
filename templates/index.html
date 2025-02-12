@@ -521,8 +521,8 @@
         <button id="captureButton" class="button button-outline camera-button" style="display: none;">
             📸 Take Photo
         </button>
-        <button id="confirmSelectionButton" class="button button-outline camera-button" style="display: none;">
-            ✅ Confirm Selection
+        <button id="confirmSelectionButton" class="icon-button floating-action-button" style="display: none;">
+            <span class="material-icons">check</span>
         </button>
         <div id="errorMessage"></div>
         <div id="resultContainer" style="display: none;">
@@ -1298,7 +1298,7 @@
         function explainImage() {
             showLoading('Analyzing image...');
 
-            // Get the image data from photoImage instead of photoCanvas
+            // Get the image data from photoImage
             const photoImage = document.getElementById('photoImage');
 
             // Create a temporary canvas to get the image data
@@ -1310,33 +1310,38 @@
 
             const imageData = tempCanvas.toDataURL('image/jpeg');
 
+            // Include system prompt and preferred language in the request
             fetch('/api/explain', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({image: imageData})
+                body: JSON.stringify({
+                    image: imageData,
+                    systemPrompt: settings.systemPrompt,
+                    language: settings.preferredLanguage
+                })
             })
-                .then(response => response.json())
-                .then(data => {
-                    ocrText = data.explanation;
-                    const parsedText = marked.parse(ocrText);
-                    document.getElementById('ocrResult').innerHTML = `Explanation: ${parsedText}`;
-                    renderMathInElement(document.getElementById('ocrResult'), {
-                        delimiters: [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false}
-                        ]
-                    });
-                    setLoading(document.getElementById('explainButton'), false);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    setLoading(document.getElementById('explainButton'), false);
-                })
-                .finally(() => {
-                    hideLoading();
+            .then(response => response.json())
+            .then(data => {
+                ocrText = data.explanation;
+                const parsedText = marked.parse(ocrText);
+                document.getElementById('ocrResult').innerHTML = `Explanation: ${parsedText}`;
+                renderMathInElement(document.getElementById('ocrResult'), {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
                 });
+                setLoading(document.getElementById('explainButton'), false);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                setLoading(document.getElementById('explainButton'), false);
+            })
+            .finally(() => {
+                hideLoading();
+            });
         }
 
         function setLoading(button, isLoading) {
