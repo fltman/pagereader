@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mobile Camera App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <style>
         body {
             display: flex;
@@ -22,11 +23,13 @@
             padding: 20px;
             background-color: #f4f5f6;
         }
+
         .container {
             text-align: center;
             width: 100%;
             max-width: 500px;
         }
+
         .camera-button {
             font-size: 1.8rem;
             padding: 0.5rem 3rem;
@@ -40,27 +43,36 @@
             justify-content: center;
             user-select: none;
         }
+
         .camera-button:hover {
             background-color: #606c76;
             border-color: #606c76;
         }
+
         .camera-button:active {
             transform: scale(0.98);
         }
-        #cameraView, #photoCanvas, #selectionCanvas {
+
+        #cameraView,
+        #photoCanvas,
+        #selectionCanvas {
             width: 100%;
             max-width: 500px;
             height: auto;
             background-color: #000;
             margin-bottom: 20px;
         }
-        #photoCanvas, #selectionCanvas {
+
+        #photoCanvas,
+        #selectionCanvas {
             display: none;
         }
+
         #errorMessage {
             color: red;
             margin-top: 10px;
         }
+
         #translatePopup {
             display: none;
             position: fixed;
@@ -72,19 +84,23 @@
             border: 1px solid black;
             z-index: 1000;
         }
+
         .button-row {
             xdisplay: flex;
             justify-content: space-between;
             margin-top: 10px;
         }
+
         .button-row .button {
             flex: 1;
             margin: 5px 5px;
         }
+
         .loading {
             opacity: 0.5;
             pointer-events: none;
         }
+
         .selection-handle {
             width: 20px;
             height: 20px;
@@ -96,14 +112,39 @@
             pointer-events: auto;
             border-radius: 50%;
         }
-        .handle-nw { cursor: nw-resize; }
-        .handle-n { cursor: n-resize; }
-        .handle-ne { cursor: ne-resize; }
-        .handle-w { cursor: w-resize; }
-        .handle-e { cursor: e-resize; }
-        .handle-sw { cursor: sw-resize; }
-        .handle-s { cursor: s-resize; }
-        .handle-se { cursor: se-resize; }
+
+        .handle-nw {
+            cursor: nw-resize;
+        }
+
+        .handle-n {
+            cursor: n-resize;
+        }
+
+        .handle-ne {
+            cursor: ne-resize;
+        }
+
+        .handle-w {
+            cursor: w-resize;
+        }
+
+        .handle-e {
+            cursor: e-resize;
+        }
+
+        .handle-sw {
+            cursor: sw-resize;
+        }
+
+        .handle-s {
+            cursor: s-resize;
+        }
+
+        .handle-se {
+            cursor: se-resize;
+        }
+
         .selection-box {
             position: absolute;
             border: 2px solid red;
@@ -112,24 +153,29 @@
             top: 0;
             left: 0;
         }
+
         #selectionCanvas {
             position: relative;
             display: block;
         }
+
         .canvas-container {
             position: relative;
             width: 100%;
             max-width: 500px;
         }
+
         .image-container {
             max-width: 500px;
             width: 100%;
             margin: 0 auto;
         }
+
         #photoCanvas {
             max-width: 100%;
             display: none;
         }
+
         .modal {
             display: none;
             position: fixed;
@@ -140,6 +186,7 @@
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
         }
+
         .modal-content {
             position: fixed;
             top: 50%;
@@ -153,12 +200,14 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+
         .language-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin: 20px 0;
         }
+
         .language-item {
             padding: 10px;
             border: 1px solid #ddd;
@@ -167,20 +216,25 @@
             text-align: center;
             transition: background-color 0.2s;
         }
+
         .language-item:hover {
             background-color: #f0f0f0;
         }
+
         .language-item.selected {
             background-color: #9b4dca;
             color: white;
             border-color: #9b4dca;
         }
-        .play-text, .pause-text {
+
+        .play-text,
+        .pause-text {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 5px;
         }
+
         .voice-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -189,6 +243,7 @@
             max-height: 400px;
             overflow-y: auto;
         }
+
         .voice-item {
             padding: 15px;
             border: 1px solid #ddd;
@@ -200,23 +255,28 @@
             flex-direction: column;
             gap: 5px;
         }
+
         .voice-item:hover {
             background-color: #f0f0f0;
         }
+
         .voice-item.selected {
             background-color: #9b4dca;
             color: white;
             border-color: #9b4dca;
         }
+
         .voice-preview-container {
             margin: 15px 0;
             text-align: center;
         }
+
         .preview-button {
             font-size: 1.2rem;
             padding: 5px 10px;
             margin-top: 5px;
         }
+
         .loading-overlay {
             display: none;
             position: fixed;
@@ -230,6 +290,7 @@
             align-items: center;
             flex-direction: column;
         }
+
         .spinner {
             width: 50px;
             height: 50px;
@@ -238,21 +299,30 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+
         .loading-text {
             color: white;
             margin-top: 20px;
             font-size: 1.2em;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         .camera-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 10px;
             margin: 20px 0;
         }
+
         .camera-item {
             padding: 15px;
             border: 1px solid #ddd;
@@ -261,9 +331,11 @@
             text-align: center;
             transition: background-color 0.2s;
         }
+
         .camera-item:hover {
             background-color: #f0f0f0;
         }
+
         .camera-item.selected {
             background-color: #9b4dca;
             color: white;
@@ -271,6 +343,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Read it!</h1>
@@ -316,7 +389,7 @@
                 <div class="language-item" data-lang="english">
                     🇬🇧 English
                 </div>
-                
+
                 <!-- Other Scandinavian languages -->
                 <div class="language-item" data-lang="dansk">
                     🇩🇰 Dansk
@@ -330,7 +403,7 @@
                 <div class="language-item" data-lang="suomi">
                     🇫🇮 Suomi
                 </div>
-                
+
                 <!-- Other European languages (alphabetically) -->
                 <div class="language-item" data-lang="deutsch">
                     🇩🇪 Deutsch
@@ -350,7 +423,7 @@
                 <div class="language-item" data-lang="português">
                     🇵🇹 Português
                 </div>
-                
+
                 <!-- Arabic -->
                 <div class="language-item" data-lang="العربية">
                     🇸🇦 العربية
@@ -420,16 +493,16 @@
         async function startCamera() {
             try {
                 // First request general camera access to trigger permission prompt
-                await navigator.mediaDevices.getUserMedia({ video: true });
-                
+                await navigator.mediaDevices.getUserMedia({video: true});
+
                 // Then enumerate all available cameras
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                
+
                 if (videoDevices.length === 0) {
                     throw new Error('No cameras found');
                 }
-                
+
                 // Combine actual devices and fallback options
                 const cameras = [
                     // Add actual detected cameras
@@ -439,10 +512,10 @@
                         isActual: true
                     })),
                     // Add fallback options if we have less than 2 labeled cameras
-                    { deviceId: '', facingMode: 'environment', label: '📱 Try Back Camera', isActual: false },
-                    { deviceId: '', facingMode: 'user', label: '🤳 Try Front Camera', isActual: false }
+                    {deviceId: '', facingMode: 'environment', label: '📱 Try Back Camera', isActual: false},
+                    {deviceId: '', facingMode: 'user', label: '🤳 Try Front Camera', isActual: false}
                 ];
-                
+
                 if (videoDevices.length === 1 && videoDevices[0].label) {
                     // If only one labeled camera, use it directly
                     await initializeCamera(videoDevices[0].deviceId);
@@ -469,18 +542,18 @@
             const canvas = document.createElement('canvas');
             canvas.width = cameraView.videoWidth;
             canvas.height = cameraView.videoHeight;
-            
+
             // Draw the full-resolution image
             canvas.getContext('2d').drawImage(cameraView, 0, 0);
-            
+
             const photoImage = document.getElementById('photoImage');
             photoImage.src = canvas.toDataURL('image/png', 1.0); // Use PNG with max quality
             photoImage.style.display = 'block';
-            
+
             cameraView.style.display = 'none';
             captureButton.style.display = 'none';
             confirmSelectionButton.style.display = 'inline-block';
-            
+
             // Initialize Cropper with high-quality options
             cropper = new Cropper(photoImage, {
                 viewMode: 1,
@@ -504,9 +577,9 @@
 
         function confirmSelection() {
             if (!cropper) return;
-            
+
             showLoading('Reading text...');
-            
+
             // Get the cropped canvas with high resolution options
             const croppedCanvas = cropper.getCroppedCanvas({
                 width: cropper.getData().width,
@@ -514,7 +587,7 @@
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high'
             });
-            
+
             // Convert to blob with high quality
             croppedCanvas.toBlob((blob) => {
                 const formData = new FormData();
@@ -524,48 +597,48 @@
                     method: 'POST',
                     body: formData
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error(err.error || 'OCR process failed');
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
-                    console.log('OCR Result:', data.text);
-                    ocrText = data.text;
-                    document.getElementById('ocrResult').textContent = `OCR Result: ${ocrText}`;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    let errorMsg = error.message;
-                    if (errorMsg === 'No text found') {
-                        errorMsg = 'No text was found in the image. Please try again with a clearer image or different area.';
-                        ocrText = ''; // Clear any previous text
-                    }
-                    document.getElementById('errorMessage').textContent = errorMsg;
-                    document.getElementById('ocrResult').textContent = '';
-                })
-                .finally(() => {
-                    // Always show result container and display cropped image
-                    document.getElementById('resultContainer').style.display = 'block';
-                    
-                    // Display cropped image
-                    const photoImage = document.getElementById('photoImage');
-                    photoImage.src = croppedCanvas.toDataURL();
-                    
-                    if (cropper) {
-                        cropper.destroy();
-                        cropper = null;
-                    }
-                    
-                    hideLoading();
-                    confirmSelectionButton.style.display = 'none';
-                });
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => {
+                                throw new Error(err.error || 'OCR process failed');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        console.log('OCR Result:', data.text);
+                        ocrText = data.text;
+                        document.getElementById('ocrResult').textContent = `OCR Result: ${ocrText}`;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        let errorMsg = error.message;
+                        if (errorMsg === 'No text found') {
+                            errorMsg = ''; //No text was found in the image.Please try again with a clearer image or different area.
+                            ocrText = ''; // Clear any previous text
+                        }
+                        document.getElementById('errorMessage').textContent = errorMsg;
+                        document.getElementById('ocrResult').textContent = '';
+                    })
+                    .finally(() => {
+                        // Always show result container and display cropped image
+                        document.getElementById('resultContainer').style.display = 'block';
+
+                        // Display cropped image
+                        const photoImage = document.getElementById('photoImage');
+                        photoImage.src = croppedCanvas.toDataURL();
+
+                        if (cropper) {
+                            cropper.destroy();
+                            cropper = null;
+                        }
+
+                        hideLoading();
+                        confirmSelectionButton.style.display = 'none';
+                    });
             }, 'image/png', 1.0);
         }
 
@@ -574,17 +647,17 @@
                 cropper.destroy();
                 cropper = null;
             }
-            
+
             const photoImage = document.getElementById('photoImage');
             photoImage.style.display = 'none';
             photoImage.src = '';
-            
+
             cameraView.style.display = 'block';
-            
+
             captureButton.textContent = '📸 Take Photo';
             captureButton.removeEventListener('click', resetCamera);
             captureButton.addEventListener('click', takePhoto);
-            
+
             document.getElementById('resultContainer').style.display = 'none';
 
             if (currentAudio) {
@@ -635,51 +708,51 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     text: text,
                     voice_id: currentVoiceId
                 })
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.blob();
-            })
-            .then(audioBlob => {
-                const audioUrl = URL.createObjectURL(audioBlob);
-                currentAudio = new Audio(audioUrl);
-                
-                currentAudio.addEventListener('ended', () => {
-                    resetPlayButton();
-                });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.blob();
+                })
+                .then(audioBlob => {
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    currentAudio = new Audio(audioUrl);
 
-                currentAudio.addEventListener('error', () => {
-                    console.error('Audio playback error');
-                    resetPlayButton();
-                });
+                    currentAudio.addEventListener('ended', () => {
+                        resetPlayButton();
+                    });
 
-                currentAudio.play().catch(error => {
-                    console.error('Error playing audio:', error);
+                    currentAudio.addEventListener('error', () => {
+                        console.error('Audio playback error');
+                        resetPlayButton();
+                    });
+
+                    currentAudio.play().catch(error => {
+                        console.error('Error playing audio:', error);
+                        resetPlayButton();
+                    });
+
+                    setLoading(document.getElementById('readButton'), false);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                     resetPlayButton();
+                })
+                .finally(() => {
+                    hideLoading();
                 });
-                
-                setLoading(document.getElementById('readButton'), false);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                resetPlayButton();
-            })
-            .finally(() => {
-                hideLoading();
-            });
         }
 
         function resetPlayButton() {
             const button = document.getElementById('readButton');
             const playText = button.querySelector('.play-text');
             const pauseText = button.querySelector('.pause-text');
-            
+
             playText.style.display = 'inline';
             pauseText.style.display = 'none';
             setLoading(button, false);
@@ -704,10 +777,10 @@
                 document.querySelectorAll('.language-item').forEach(i => {
                     i.classList.remove('selected');
                 });
-                
+
                 // Add selected class to clicked item
                 item.classList.add('selected');
-                
+
                 // Get the language and translate
                 const language = item.dataset.lang;
                 if (!ocrText) {
@@ -716,7 +789,7 @@
                     setLoading(document.getElementById('translateButton'), false);
                     return;
                 }
-                
+
                 translateText(ocrText, language);
                 document.getElementById('translatePopup').style.display = 'none';
             });
@@ -736,40 +809,40 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ text: text, language: language })
+                body: JSON.stringify({text: text, language: language})
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                ocrText = data.translatedText;
-                
-                // Only parse if there's text to parse
-                const displayText = ocrText ? marked.parse(ocrText) : 'No translation available';
-                document.getElementById('ocrResult').innerHTML = `Translated Result: ${displayText}`;
-                
-                renderMathInElement(document.getElementById('ocrResult'), {
-                    delimiters: [
-                        {left: '$$', right: '$$', display: true},
-                        {left: '$', right: '$', display: false}
-                    ]
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    ocrText = data.translatedText;
+
+                    // Only parse if there's text to parse
+                    const displayText = ocrText ? marked.parse(ocrText) : 'No translation available';
+                    document.getElementById('ocrResult').innerHTML = `Translated Result: ${displayText}`;
+
+                    renderMathInElement(document.getElementById('ocrResult'), {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ]
+                    });
+                })
+                .catch(error => {
+                    console.error('Translation error:', error);
+                    document.getElementById('ocrResult').textContent = `Translation Error: ${error.message}`;
+                })
+                .finally(() => {
+                    hideLoading();
+                    setLoading(document.getElementById('translateButton'), false);
                 });
-            })
-            .catch(error => {
-                console.error('Translation error:', error);
-                document.getElementById('ocrResult').textContent = `Translation Error: ${error.message}`;
-            })
-            .finally(() => {
-                hideLoading();
-                setLoading(document.getElementById('translateButton'), false);
-            });
         }
 
         document.getElementById('simplifyButton').addEventListener('click', () => {
@@ -785,28 +858,28 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ text: text })
+                body: JSON.stringify({text: text})
             })
-            .then(response => response.json())
-            .then(data => {
-                ocrText = data.simplifiedText;
-                const parsedText = marked.parse(ocrText);
-                document.getElementById('ocrResult').innerHTML = `Simplified Result: ${parsedText}`;
-                renderMathInElement(document.getElementById('ocrResult'), {
-    delimiters: [
-        {left: '$$', right: '$$', display: true},
-        {left: '$', right: '$', display: false}
-    ]
-});
-                setLoading(document.getElementById('simplifyButton'), false);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                setLoading(document.getElementById('simplifyButton'), false);
-            })
-            .finally(() => {
-                hideLoading();
-            });
+                .then(response => response.json())
+                .then(data => {
+                    ocrText = data.simplifiedText;
+                    const parsedText = marked.parse(ocrText);
+                    document.getElementById('ocrResult').innerHTML = `Simplified Result: ${parsedText}`;
+                    renderMathInElement(document.getElementById('ocrResult'), {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ]
+                    });
+                    setLoading(document.getElementById('simplifyButton'), false);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    setLoading(document.getElementById('simplifyButton'), false);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
         }
 
         document.getElementById('explainButton').addEventListener('click', () => {
@@ -819,14 +892,14 @@
 
             // Get the image data from photoImage instead of photoCanvas
             const photoImage = document.getElementById('photoImage');
-            
+
             // Create a temporary canvas to get the image data
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = photoImage.naturalWidth;
             tempCanvas.height = photoImage.naturalHeight;
             const ctx = tempCanvas.getContext('2d');
             ctx.drawImage(photoImage, 0, 0);
-            
+
             const imageData = tempCanvas.toDataURL('image/jpeg');
 
             fetch('/api/explain', {
@@ -834,28 +907,28 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ image: imageData })
+                body: JSON.stringify({image: imageData})
             })
-            .then(response => response.json())
-            .then(data => {
-                ocrText = data.explanation;
-                const parsedText = marked.parse(ocrText);
-                document.getElementById('ocrResult').innerHTML = `Explanation: ${parsedText}`;
-                renderMathInElement(document.getElementById('ocrResult'), {
-    delimiters: [
-        {left: '$$', right: '$$', display: true},
-        {left: '$', right: '$', display: false}
-    ]
-});
-                setLoading(document.getElementById('explainButton'), false);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                setLoading(document.getElementById('explainButton'), false);
-            })
-            .finally(() => {
-                hideLoading();
-            });
+                .then(response => response.json())
+                .then(data => {
+                    ocrText = data.explanation;
+                    const parsedText = marked.parse(ocrText);
+                    document.getElementById('ocrResult').innerHTML = `Explanation: ${parsedText}`;
+                    renderMathInElement(document.getElementById('ocrResult'), {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ]
+                    });
+                    setLoading(document.getElementById('explainButton'), false);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    setLoading(document.getElementById('explainButton'), false);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
         }
 
         function setLoading(button, isLoading) {
@@ -902,17 +975,17 @@
         function populateVoiceGrid(voices) {
             const grid = document.querySelector('.voice-grid');
             grid.innerHTML = '';
-            
+
             voices.forEach(voice => {
                 const voiceItem = document.createElement('div');
                 voiceItem.className = `voice-item ${voice.id === currentVoiceId ? 'selected' : ''}`;
                 voiceItem.dataset.voiceId = voice.id;
-                
+
                 voiceItem.innerHTML = `
                     <div>${voice.name}</div>
                     ${voice.preview_url ? `<button class="preview-button">🔊 Preview</button>` : ''}
                 `;
-                
+
                 // Add click handler for selection
                 voiceItem.addEventListener('click', (e) => {
                     if (e.target.classList.contains('preview-button')) {
@@ -931,7 +1004,7 @@
                         document.getElementById('voicePopup').style.display = 'none';
                     }
                 });
-                
+
                 grid.appendChild(voiceItem);
             });
         }
@@ -954,15 +1027,15 @@
         async function showCameraSelector(cameras) {
             const grid = document.querySelector('.camera-grid');
             grid.innerHTML = '';
-            
+
             cameras.forEach((camera) => {
                 const cameraItem = document.createElement('div');
                 cameraItem.className = 'camera-item';
-                
+
                 cameraItem.innerHTML = `
                     <div>${camera.label}</div>
                 `;
-                
+
                 cameraItem.addEventListener('click', async () => {
                     document.getElementById('cameraPopup').style.display = 'none';
                     if (camera.isActual) {
@@ -971,37 +1044,37 @@
                         await initializeCamera(null, camera.facingMode);
                     }
                 });
-                
+
                 grid.appendChild(cameraItem);
             });
-            
+
             document.getElementById('cameraPopup').style.display = 'block';
         }
 
         async function initializeCamera(deviceId, facingMode) {
             const constraints = {
                 video: {
-                    ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
-                    ...(facingMode ? { facingMode } : {}),
-                    width: { ideal: 4096 },
-                    height: { ideal: 2160 }
+                    ...(deviceId ? {deviceId: {exact: deviceId}} : {}),
+                    ...(facingMode ? {facingMode} : {}),
+                    width: {ideal: 4096},
+                    height: {ideal: 2160}
                 }
             };
-            
+
             try {
                 if (stream) {
                     stream.getTracks().forEach(track => track.stop());
                 }
-                
+
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
                 cameraView.srcObject = stream;
-                
+
                 await new Promise(resolve => {
                     cameraView.onloadedmetadata = () => {
                         resolve();
                     };
                 });
-                
+
                 startButton.style.display = 'none';
                 captureButton.style.display = 'inline-block';
                 errorMessage.textContent = '';
@@ -1016,4 +1089,5 @@
         });
     </script>
 </body>
+
 </html>
