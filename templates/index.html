@@ -533,8 +533,8 @@
                     <span class="material-icons">psychology</span>
                 </button>
             </div>
-            <button id="newPhotoButton" class="icon-button floating-action-button">
-                <span class="material-icons">photo_camera</span>
+            <button id="newPhotoButton" class="icon-button floating-action-button" style="display: none;">
+                <span class="material-icons">camera</span>
             </button>
         </div>
     </div>
@@ -1010,26 +1010,33 @@
             const playText = button.querySelector('.play-text');
             const pauseText = button.querySelector('.pause-text');
 
-            if (currentAudio && lastPlayedText === ocrText) {
-                if (currentAudio.paused) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+                playText.style.display = 'inline';
+                pauseText.style.display = 'none';
+                setLoading(button, false);
+            } else {
+                if (!ocrText) {
+                    console.error('No text to read');
+                    return;
+                }
+                
+                if (ocrText === lastPlayedText) {
                     currentAudio.play();
                     playText.style.display = 'none';
                     pauseText.style.display = 'inline';
                 } else {
-                    currentAudio.pause();
-                    playText.style.display = 'inline';
-                    pauseText.style.display = 'none';
+                    if (currentAudio) {
+                        currentAudio.pause();
+                        currentAudio = null;
+                    }
+                    playText.style.display = 'none';
+                    pauseText.style.display = 'inline';
+                    setLoading(button, true);
+                    readText(ocrText);
+                    lastPlayedText = ocrText;
                 }
-            } else {
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio = null;
-                }
-                playText.style.display = 'none';
-                pauseText.style.display = 'inline';
-                setLoading(button, true);
-                readText(ocrText);
-                lastPlayedText = ocrText;
             }
         });
 
@@ -1089,11 +1096,6 @@
 
         function resetPlayButton() {
             const button = document.getElementById('readButton');
-            const playText = button.querySelector('.play-text');
-            const pauseText = button.querySelector('.pause-text');
-
-            playText.style.display = 'inline';
-            pauseText.style.display = 'none';
             setLoading(button, false);
             currentAudio = null;
             lastPlayedText = '';
@@ -1566,6 +1568,21 @@
             // Set initial selected language in settings
             settingsSelector.setSelected(settings.preferredLanguage);
         });
+
+        // Update the button visibility logic
+        function showResultContainer(show) {
+            document.getElementById('resultContainer').style.display = show ? 'block' : 'none';
+            document.getElementById('newPhotoButton').style.display = show ? 'block' : 'none';
+            if (show) {
+                // Hide other floating action buttons when showing results
+                document.getElementById('captureButton').style.display = 'none';
+                document.getElementById('confirmSelectionButton').style.display = 'none';
+                document.getElementById('startButton').style.display = 'none';
+            } else {
+                // Show start button when hiding results
+                document.getElementById('startButton').style.display = 'block';
+            }
+        }
     </script>
 </body>
 
