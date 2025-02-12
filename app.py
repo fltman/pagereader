@@ -308,7 +308,7 @@ def explain_image():
 
 	# Get vision analysis
 	response = client.chat.completions.create(
-	    model="gpt-4-vision-preview",
+	    model="gpt-4o",
 	    messages=[
 	        {"role": "system", "content": system_prompt} if system_prompt else None,
 	        {
