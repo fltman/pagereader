@@ -493,8 +493,20 @@
             justify-content: center;
         }
 
+        /* Style for all buttons that can be floating action buttons */
+        #startButton,
+        #captureButton,
+        #confirmSelectionButton {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* Update all Material Icons in floating action buttons */
-        .floating-action-button .material-icons {
+        .floating-action-button .material-icons,
+        #startButton .material-icons,
+        #captureButton .material-icons,
+        #confirmSelectionButton .material-icons {
             font-size: 36px;
             width: 36px;
             height: 36px;
