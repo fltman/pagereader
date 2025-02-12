@@ -144,8 +144,6 @@
             border: 2px solid red;
             pointer-events: none;
             z-index: 1000;
-            top: 0;
-            left: 0;
         }
 
         #selectionCanvas {
@@ -459,10 +457,10 @@
 
         .action-buttons {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
             margin: 20px auto;
-            max-width: 280px;
+            max-width: 360px;
             padding: 0 20px;
         }
 
@@ -506,6 +504,16 @@
         .action-buttons {
             text-align: center;
         }
+
+        /* Position handles */
+        .handle-nw { top: -10px; left: -10px; cursor: nw-resize; }
+        .handle-n  { top: -10px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+        .handle-ne { top: -10px; right: -10px; cursor: ne-resize; }
+        .handle-w  { top: 50%; left: -10px; transform: translateY(-50%); cursor: w-resize; }
+        .handle-e  { top: 50%; right: -10px; transform: translateY(-50%); cursor: e-resize; }
+        .handle-sw { bottom: -10px; left: -10px; cursor: sw-resize; }
+        .handle-s  { bottom: -10px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+        .handle-se { bottom: -10px; right: -10px; cursor: se-resize; }
     </style>
 </head>
 
@@ -544,11 +552,11 @@
                 <button id="explainButton" class="icon-button">
                     <span class="material-icons">psychology</span>
                 </button>
+                <button id="newPhotoButton" class="icon-button">
+                    <span class="material-icons">camera</span>
+                </button>
             </div>
         </div>
-        <button id="newPhotoButton" class="icon-button floating-action-button" style="display: none;">
-            <span class="material-icons">camera</span>
-        </button>
     </div>
 
     <div id="translatePopup" class="modal">
@@ -1205,8 +1213,12 @@
         // Settings management
         let settings = {
             preferredLanguage: localStorage.getItem('preferredLanguage') || 'english',
-            systemPrompt: localStorage.getItem('systemPrompt') || ''
+            systemPrompt: localStorage.getItem('systemPrompt') || '',
+            voiceId: localStorage.getItem('voiceId') || 'YREPt7KOziuJoYyc1RTB'  // Add voice ID to settings
         };
+
+        // Update currentVoiceId initialization
+        let currentVoiceId = settings.voiceId;
 
         document.getElementById('settingsButton').addEventListener('click', () => {
             // Show settings popup
@@ -1425,6 +1437,9 @@
                         });
                         voiceItem.classList.add('selected');
                         currentVoiceId = voice.id;
+                        // Save to settings and local storage
+                        settings.voiceId = voice.id;
+                        localStorage.setItem('voiceId', voice.id);
                         document.getElementById('voicePopup').style.display = 'none';
                     }
                 });
@@ -1583,15 +1598,12 @@
         // Update the button visibility logic
         function showResultContainer(show) {
             document.getElementById('resultContainer').style.display = show ? 'block' : 'none';
-            document.getElementById('newPhotoButton').style.display = show ? 'block' : 'none';
             
             if (show) {
                 // Hide camera-related buttons when showing results
                 document.getElementById('captureButton').style.display = 'none';
                 document.getElementById('confirmSelectionButton').style.display = 'none';
                 document.getElementById('startButton').style.display = 'none';
-                // Make sure the new photo button is visible
-                document.getElementById('newPhotoButton').style.display = 'block';
             } else {
                 // Show start button when hiding results
                 document.getElementById('startButton').style.display = 'block';
@@ -1612,6 +1624,118 @@
             
             // Show results and manage button visibility
             showResultContainer(true);
+        }
+
+        // Add this function to create the selection handles
+        function createSelectionHandles(selectionBox) {
+            const positions = [
+                'nw', 'n', 'ne',
+                'w', 'e',
+                'sw', 's', 'se'
+            ];
+
+            positions.forEach(pos => {
+                const handle = document.createElement('div');
+                handle.className = `selection-handle handle-${pos}`;
+                handle.dataset.position = pos;
+                selectionBox.appendChild(handle);
+            });
+        }
+
+        // Add handle drag functionality
+        function initializeHandleDrag() {
+            const handles = document.querySelectorAll('.selection-handle');
+            handles.forEach(handle => {
+                handle.addEventListener('mousedown', startHandleDrag);
+            });
+        }
+
+        function startHandleDrag(e) {
+            e.stopPropagation();
+            const handle = e.target;
+            const selectionBox = handle.parentElement;
+            const position = handle.dataset.position;
+            
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startWidth = selectionBox.offsetWidth;
+            const startHeight = selectionBox.offsetHeight;
+            const startLeft = selectionBox.offsetLeft;
+            const startTop = selectionBox.offsetTop;
+
+            function handleDrag(e) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                switch(position) {
+                    case 'nw':
+                        selectionBox.style.width = (startWidth - dx) + 'px';
+                        selectionBox.style.height = (startHeight - dy) + 'px';
+                        selectionBox.style.left = (startLeft + dx) + 'px';
+                        selectionBox.style.top = (startTop + dy) + 'px';
+                        break;
+                    case 'n':
+                        selectionBox.style.height = (startHeight - dy) + 'px';
+                        selectionBox.style.top = (startTop + dy) + 'px';
+                        break;
+                    case 'ne':
+                        selectionBox.style.width = (startWidth + dx) + 'px';
+                        selectionBox.style.height = (startHeight - dy) + 'px';
+                        selectionBox.style.top = (startTop + dy) + 'px';
+                        break;
+                    case 'w':
+                        selectionBox.style.width = (startWidth - dx) + 'px';
+                        selectionBox.style.left = (startLeft + dx) + 'px';
+                        break;
+                    case 'e':
+                        selectionBox.style.width = (startWidth + dx) + 'px';
+                        break;
+                    case 'sw':
+                        selectionBox.style.width = (startWidth - dx) + 'px';
+                        selectionBox.style.height = (startHeight + dy) + 'px';
+                        selectionBox.style.left = (startLeft + dx) + 'px';
+                        break;
+                    case 's':
+                        selectionBox.style.height = (startHeight + dy) + 'px';
+                        break;
+                    case 'se':
+                        selectionBox.style.width = (startWidth + dx) + 'px';
+                        selectionBox.style.height = (startHeight + dy) + 'px';
+                        break;
+                }
+            }
+
+            function stopHandleDrag() {
+                document.removeEventListener('mousemove', handleDrag);
+                document.removeEventListener('mouseup', stopHandleDrag);
+            }
+
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mouseup', stopHandleDrag);
+        }
+
+        // Call initializeHandleDrag after creating the selection box
+        function startSelection(e) {
+            isSelecting = true;
+            const rect = selectionCanvas.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+
+            // Create selection box if it doesn't exist
+            let selectionBox = document.querySelector('.selection-box');
+            if (!selectionBox) {
+                selectionBox = document.createElement('div');
+                selectionBox.className = 'selection-box';
+                selectionCanvas.parentElement.appendChild(selectionBox);
+                createSelectionHandles(selectionBox);
+            }
+
+            // Position the selection box
+            selectionBox.style.left = startX + 'px';
+            selectionBox.style.top = startY + 'px';
+            selectionBox.style.width = '0';
+            selectionBox.style.height = '0';
+            initializeHandleDrag();
         }
     </script>
 </body>
